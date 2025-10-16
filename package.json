@@ -10,8 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/fiber": "^9.4.0",
+    "@types/three": "^0.180.0",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "styled-components": "^6.1.19",
+    "three": "^0.180.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
@@ -26,5 +30,18 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.45.0",
     "vite": "^7.1.7"
-  }
+  },
+  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
+  "main": "eslint.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kevinparra535/creativedev.particles.git"
+  },
+  "keywords": [],
+  "author": "Kevin Parra Lopez <kevinparra535@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Kevinparra535/creativedev.particles/issues"
+  },
+  "homepage": "https://github.com/Kevinparra535/creativedev.particles#readme"
 }
