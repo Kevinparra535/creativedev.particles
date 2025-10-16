@@ -1,26 +1,13 @@
-import * as THREE from "three";
-import { Canvas, createPortal, extend, useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
 import { useFBO } from "@react-three/drei";
-import SimulationMaterial from "../../materials/SimulationMaterial";
-
-import { vertexShader } from "../../materials/vertexShader";
+import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
+import * as THREE from "three";
 import { fragmentShader } from "../../materials/fragmentShader";
-
-extend({ SimulationMaterial });
-
-declare module "@react-three/fiber" {
-  namespace JSX {
-    interface IntrinsicElements {
-      simulationMaterial: ThreeElements["shaderMaterial"] & {
-        args?: [number];
-      };
-    }
-  }
-}
+import { vertexShader } from "../../materials/vertexShader";
 
 const FBOParticles = () => {
-  const size = 250;
+  const size = 128;
   const points = useRef<THREE.Points>(null!);
   const simulationMaterialRef = useRef<THREE.ShaderMaterial>(null!);
 
@@ -140,18 +127,14 @@ const FBOParticles = () => {
   );
 };
 
-const R3FCanva = () => (
-  <Canvas>
-    <ambientLight intensity={Math.PI / 2} />
-    <spotLight
-      position={[10, 10, 10]}
-      angle={0.15}
-      penumbra={1}
-      decay={0}
-      intensity={Math.PI}
-    />
-    <FBOParticles />
-  </Canvas>
-);
+declare module "@react-three/fiber" {
+  namespace JSX {
+    interface IntrinsicElements {
+      simulationMaterial: ThreeElements["shaderMaterial"] & {
+        args?: [number];
+      };
+    }
+  }
+}
 
-export default R3FCanva;
+export default FBOParticles;
