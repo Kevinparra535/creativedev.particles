@@ -1,64 +1,90 @@
 # Copilot Instructions for creativedev.particles
 
-## Project Overview
-This is an immersive 3D experience project using React Three Fiber, Three.js, and TypeScript. Built on Vite for optimal development experience with modern React 19 patterns. Focuses on particle systems, interactive 3D scenes, and creative visual effects.
+## Creative Tech Lead Project Overview
 
-## Architecture & Tech Stack
+This is a **Creative Technology Leadership portfolio project** showcasing enterprise-grade 3D immersive experiences. Built with React Three Fiber, Three.js, and TypeScript to demonstrate advanced technical architecture, performance optimization, and creative coding excellence.
+
+**Project Purpose**: Demonstrate Creative Tech Lead competencies in scalable, high-performance creative applications.
+
+## Architecture Philosophy - Creative Tech Excellence
+
+- **Performance-First Design**: Every decision optimized for 60fps+ real-time rendering
+- **Enterprise Scalability**: Clean Architecture + SOLID principles for team collaboration
+- **Creative Innovation**: Cutting-edge web technologies enabling ambitious visual experiences
+- **User Experience Focus**: Immersive interactions that feel effortless and magical
+
+## Tech Stack - Creative Technology Leadership
+
 - **3D Engine**: Three.js with React Three Fiber (@react-three/fiber)
-- **Frontend Framework**: React 19 with TypeScript
-- **Build Tool**: Vite 7 with React plugin
-- **3D Ecosystem**: @react-three/drei, @react-three/postprocessing (recommended)
-- **State Management**: Zustand (recommended for 3D apps)
-- **Animation**: @react-spring/three, Framer Motion 3D
-- **Physics**: @react-three/cannon or @react-three/rapier (if needed)
-- **Type System**: Strict TypeScript with Three.js types
-- **Linting**: ESLint 9 with React hooks and refresh plugins
-- **Module System**: ESM (type: "module" in package.json)
+- **Frontend Framework**: React 19 with TypeScript (strict mode)
+- **Build System**: Vite 7 with optimized React plugin
+- **3D Ecosystem**: @react-three/drei, @react-three/postprocessing
+- **State Management**: Zustand (optimized for complex 3D state)
+- **Animation Engine**: @react-spring/three, Framer Motion 3D
+- **Physics Simulation**: @react-three/cannon or @react-three/rapier
+- **Styling System**: Styled Components with glassmorphism design
+- **Performance**: GPU acceleration, instancing, LOD, memory pooling
 
-## Key Configuration Files
-- `tsconfig.json`: Composite TypeScript setup with separate app and node configs
-- `tsconfig.app.json`: Main app configuration with strict linting rules
-- `eslint.config.js`: Modern ESLint flat config with React hooks enforcement
-- `vite.config.ts`: Basic Vite setup with React plugin
+## Creative Tech Lead Patterns
 
-## Development Workflow
-- **Start dev server**: `npm run dev` (Vite with HMR)
-- **Build production**: `npm run build` (TypeScript compilation + Vite build)
-- **Lint code**: `npm run lint` (ESLint with auto-fix capability)
-- **Preview build**: `npm run preview` (Local preview of production build)
+- **Component-Driven Architecture**: Reusable 3D components with clear interfaces
+- **Performance Optimization**: useMemo, useCallback, React.memo for 3D rendering
+- **Type Safety Excellence**: Full TypeScript coverage for Three.js objects
+- **Clean Code Standards**: Self-documenting code with creative intent
+- **Cross-functional Collaboration**: Designer-developer friendly component APIs
 
-## Code Patterns & Conventions
-- **Component Structure**: Use `src/App.tsx` as main component, follow React function component pattern
-- **Asset Imports**: Static assets in `src/assets/`, public assets referenced from `/`
-- **TypeScript Strict Mode**: Project uses strict TypeScript with no unused locals/parameters
-- **JSX**: Uses `react-jsx` transform, no need for React imports in components
-- **Module Resolution**: Bundler mode with import extensions allowed
+## Project Structure - Enterprise Grade
 
-## Architecture Patterns
-- **Domain-Driven Design**: Separate 3D scenes, entities, and systems
-- **Component Composition**: Reusable 3D components with props interface
-- **Performance First**: Use `useMemo`, `useCallback`, and R3F optimization patterns
-- **Clean Separation**: UI components separate from 3D scene logic
-- **Type Safety**: Full TypeScript coverage for Three.js objects and scene state
-
-## Project Structure (Recommended)
 ```
 src/
-├── components/          # React UI components
-├── experience/          # 3D scenes and experiences  
-│   ├── scenes/         # Individual 3D scenes
-│   ├── objects/        # 3D objects and entities
-│   ├── systems/        # Particle systems, physics, etc.
-│   └── materials/      # Custom shaders and materials
-├── hooks/              # Custom React hooks
-├── stores/             # State management (Zustand)
-├── utils/              # Pure functions and helpers
-└── types/              # TypeScript definitions
+├── app/                     # Application Layer (Zustand stores, use cases)
+├── domain/                  # Domain Layer (entities, services, repositories)
+├── infrastructure/          # Infrastructure Layer (Three.js, WebGL, shaders)
+├── presentation/            # Presentation Layer (React components, hooks)
+│   ├── components/
+│   │   ├── ui/             # UI components with glassmorphism design
+│   │   ├── experience/     # 3D scene components
+│   │   └── particles/      # Particle system components
+│   ├── hooks/              # Custom 3D hooks (useParticles, useScene3D)
+│   └── styles/             # Styled components + theme system
+└── shared/                  # Shared utilities, types, constants
+```
+
+## Development Excellence Standards
+
+- **Code Quality**: ESLint 9 flat config, strict TypeScript, no unused variables
+- **Performance Monitoring**: Real-time FPS, memory usage, triangle count tracking
+- **Creative Workflow**: HMR-optimized development with instant visual feedback
+- **Production Ready**: Optimized builds with asset optimization and code splitting
+
+## Creative Technology Best Practices
+
+- **GPU Optimization**: Prefer instancing over individual objects for performance
+- **Memory Management**: Implement object pooling for particle systems
+- **Visual Quality**: Use post-processing effects for professional polish
+- **Responsive Design**: Adaptive quality based on device capabilities
+- **Accessibility**: Ensure immersive experiences are inclusive
+
+## Performance Excellence Targets
+
+- **Frame Rate**: Sustained 60fps+ on target devices
+- **Memory Usage**: <200MB for complex particle systems
+- **Load Times**: <3s initial load, <1s scene transitions
+- **GPU Efficiency**: <80% GPU utilization on mid-range hardware
+
+When contributing to this project, prioritize creative innovation balanced with technical excellence. This codebase demonstrates Creative Tech Lead capabilities for enterprise creative technology teams.
+│ ├── systems/ # Particle systems, physics, etc.
+│ └── materials/ # Custom shaders and materials
+├── hooks/ # Custom React hooks
+├── stores/ # State management (Zustand)
+├── utils/ # Pure functions and helpers
+└── types/ # TypeScript definitions
+
 ```
 
 ## Development Notes
 - **Performance**: Use `<Suspense>` for loading, `useFrame` carefully, dispose geometries
-- **Scene Organization**: Group related 3D objects, use `<group>` for transforms  
+- **Scene Organization**: Group related 3D objects, use `<group>` for transforms
 - **State Management**: Keep 3D state separate from UI state
 - **Hot Reloading**: R3F supports HMR for real-time scene editing
 - **Three.js Integration**: Direct Three.js access via `useThree` hook when needed
@@ -68,3 +94,4 @@ src/
 - Use `useLayoutEffect` for immediate DOM measurements before paint
 - Implement proper cleanup in `useEffect` for Three.js resources
 - Prefer declarative R3F patterns over imperative Three.js when possible
+```

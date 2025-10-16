@@ -1,94 +1,101 @@
-# Arquitectura del Proyecto - creativedev.particles
+# 🏗️ Creative Technology Architecture
 
-## Visión General
+> **Enterprise-Grade 3D Framework Design** by Kevin Parra Lopez  
+> _Demonstrating Creative Tech Lead expertise in scalable immersive experiences_
 
-Arquitectura basada en Clean Architecture + SOLID para experiencias 3D inmersivas con React Three Fiber.
+## 🎯 Architectural Philosophy
 
-## Principios Arquitectónicos
+This project showcases **advanced Creative Technology Leadership** through a sophisticated architecture that combines:
 
-### 1. **Clean Architecture Layers**
+- **Clean Architecture Principles** - Separation of concerns for maintainability
+- **SOLID Design Patterns** - Professional OOP practices
+- **Performance-First Engineering** - Optimized for 60fps+ real-time rendering
+- **Scalable Component Design** - Enterprise-ready modular structure
+
+## 🔬 Technical Leadership Approach
+
+### **Strategic Technology Decisions**
+
+```typescript
+// Creative Tech Lead Decision Matrix
+interface TechDecision {
+  performance: "critical" | "important" | "nice-to-have";
+  scalability: "enterprise" | "team" | "personal";
+  maintainability: "long-term" | "medium-term" | "short-term";
+  innovation: "cutting-edge" | "proven" | "stable";
+}
+```
+
+### **Architecture Layers with Purpose**
 
 ```
-┌─────────────────────────────────────┐
-│           UI Layer (React)          │  ← Components, Hooks
-├─────────────────────────────────────┤
-│        Application Layer            │  ← Use Cases, Stores
-├─────────────────────────────────────┤
-│         Domain Layer                │  ← Entities, Services
-├─────────────────────────────────────┤
-│      Infrastructure Layer           │  ← Three.js, APIs
-└─────────────────────────────────────┘
+🎨 PRESENTATION LAYER
+├── React Three Fiber Components    # Declarative 3D rendering
+├── Custom Hooks for 3D Logic      # Reusable stateful behavior
+├── Styled Components + Themes     # Design system consistency
+└── Performance Monitoring UI      # Real-time metrics display
+
+🧠 APPLICATION LAYER
+├── Zustand State Management       # Predictable state updates
+├── Use Case Orchestration         # Business logic coordination
+├── Event System                   # Decoupled component communication
+└── Performance Analytics          # Data-driven optimization
+
+💎 DOMAIN LAYER
+├── Particle System Entities       # Core business objects
+├── Physics & Animation Services   # Computational logic
+├── Scene Management               # 3D world coordination
+└── Repository Interfaces          # Data access contracts
+
+🔌 INFRASTRUCTURE LAYER
+├── Three.js WebGL Integration     # Low-level 3D rendering
+├── Shader & Material Systems      # GPU programming
+├── Asset Loading & Caching        # Resource management
+└── External API Adapters          # Third-party integrations
 ```
 
-### 2. **SOLID Principles Application**
+│ │ ├── ParticleService.ts # Lógica de partículas
+│ │ ├── PhysicsService.ts # Lógica de física
+│ │ └── AnimationService.ts # Lógica de animaciones
+│ └── repositories/ # Interfaces de repositorios
+│ └── ISceneRepository.ts
+│
+├── infrastructure/ # Infrastructure Layer
+│ ├── three/ # Implementaciones Three.js
+│ │ ├── loaders/ # Carga de assets 3D
+│ │ ├── materials/ # Materiales y shaders
+│ │ ├── geometries/ # Geometrías custom
+│ │ └── renderers/ # Configuraciones de renderer
+│ ├── repositories/ # Implementaciones de repositorios
+│ └── external/ # APIs externas, archivos
+│
+├── presentation/ # UI Layer (React)
+│ ├── components/ # Componentes React
+│ │ ├── ui/ # Componentes UI puros
+│ │ ├── experience/ # Componentes de experiencia 3D
+│ │ │ ├── Scene.tsx # Componente escena principal
+│ │ │ ├── Camera.tsx # Componente cámara
+│ │ │ └── Effects.tsx # Post-processing effects
+│ │ └── particles/ # Componentes específicos de partículas
+│ ├── hooks/ # Custom hooks
+│ │ ├── useParticles.ts # Hook para partículas
+│ │ ├── useScene3D.ts # Hook para escena
+│ │ └── usePhysics.ts # Hook para física
+│ └── layouts/ # Layouts de la aplicación
+│
+├── shared/ # Código compartido
+│ ├── constants/ # Constantes del proyecto
+│ ├── types/ # Tipos TypeScript
+│ ├── utils/ # Utilidades puras
+│ └── config/ # Configuraciones
+│
+└── assets/ # Recursos estáticos
+├── models/ # Modelos 3D (.gltf, .fbx)
+├── textures/ # Texturas
+├── shaders/ # Shaders GLSL
+└── audio/ # Archivos de audio
 
-- **S**ingle Responsibility: Cada componente 3D tiene una responsabilidad específica
-- **O**pen/Closed: Extensible vía composición de componentes
-- **L**iskov Substitution: Interfaces consistentes para objetos 3D
-- **I**nterface Segregation: Hooks específicos por funcionalidad
-- **D**ependency Inversion: Abstracciones sobre implementaciones concretas
-
-## Estructura de Carpetas Propuesta
-
-```
-src/
-├── app/                          # Application Layer
-│   ├── stores/                   # Estado global (Zustand)
-│   │   ├── scene.store.ts       # Estado de la escena 3D
-│   │   ├── camera.store.ts      # Control de cámara
-│   │   └── performance.store.ts # Métricas de rendimiento
-│   └── use-cases/               # Casos de uso de la aplicación
-│       ├── scene-management/
-│       ├── particle-control/
-│       └── camera-control/
-│
-├── domain/                      # Domain Layer
-│   ├── entities/               # Entidades del dominio
-│   │   ├── ParticleSystem.ts   # Entidad sistema de partículas
-│   │   ├── Scene3D.ts          # Entidad escena 3D
-│   │   └── Camera.ts           # Entidad cámara
-│   ├── services/               # Servicios del dominio
-│   │   ├── ParticleService.ts  # Lógica de partículas
-│   │   ├── PhysicsService.ts   # Lógica de física
-│   │   └── AnimationService.ts # Lógica de animaciones
-│   └── repositories/           # Interfaces de repositorios
-│       └── ISceneRepository.ts
-│
-├── infrastructure/             # Infrastructure Layer
-│   ├── three/                 # Implementaciones Three.js
-│   │   ├── loaders/          # Carga de assets 3D
-│   │   ├── materials/        # Materiales y shaders
-│   │   ├── geometries/       # Geometrías custom
-│   │   └── renderers/        # Configuraciones de renderer
-│   ├── repositories/         # Implementaciones de repositorios
-│   └── external/            # APIs externas, archivos
-│
-├── presentation/              # UI Layer (React)
-│   ├── components/           # Componentes React
-│   │   ├── ui/              # Componentes UI puros
-│   │   ├── experience/      # Componentes de experiencia 3D
-│   │   │   ├── Scene.tsx    # Componente escena principal
-│   │   │   ├── Camera.tsx   # Componente cámara
-│   │   │   └── Effects.tsx  # Post-processing effects
-│   │   └── particles/       # Componentes específicos de partículas
-│   ├── hooks/              # Custom hooks
-│   │   ├── useParticles.ts # Hook para partículas
-│   │   ├── useScene3D.ts   # Hook para escena
-│   │   └── usePhysics.ts   # Hook para física
-│   └── layouts/            # Layouts de la aplicación
-│
-├── shared/                   # Código compartido
-│   ├── constants/           # Constantes del proyecto
-│   ├── types/              # Tipos TypeScript
-│   ├── utils/              # Utilidades puras
-│   └── config/             # Configuraciones
-│
-└── assets/                  # Recursos estáticos
-    ├── models/             # Modelos 3D (.gltf, .fbx)
-    ├── textures/           # Texturas
-    ├── shaders/            # Shaders GLSL
-    └── audio/              # Archivos de audio
-```
+````
 
 ## Patrones de Diseño Implementados
 
@@ -101,7 +108,7 @@ interface ISceneRepository {
   saveScene(scene: Scene3D): Promise<void>;
   getSceneMetadata(id: string): Promise<SceneMetadata>;
 }
-```
+````
 
 ### 2. **Factory Pattern**
 
