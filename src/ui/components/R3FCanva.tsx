@@ -2,13 +2,14 @@ import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import Scene1 from "../scenes/lowQuality/Scene1";
-import EffectsController from "./controls/EffectsController";
 import settings from "../../config/settings.config";
 
 // Componente principal con controles de color
 const R3FCanva = () => {
   // Legacy camera: PerspectiveCamera(45, 1, 10, 3000) and position (300,60,300).normalize()*1000
-  const camBase = new THREE.Vector3(300, 60, 300).normalize().multiplyScalar(1000);
+  const camBase = new THREE.Vector3(300, 60, 300)
+    .normalize()
+    .multiplyScalar(1000);
 
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
@@ -53,7 +54,6 @@ const R3FCanva = () => {
         />
 
         <Scene1 />
-        <EffectsController />
       </Canvas>
     </div>
   );
