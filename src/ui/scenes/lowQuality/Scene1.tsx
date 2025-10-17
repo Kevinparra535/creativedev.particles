@@ -1,4 +1,3 @@
-
 import { useControls } from "leva";
 import LowQualityParticles from "../../components/particles/LowQualityParticles";
 
