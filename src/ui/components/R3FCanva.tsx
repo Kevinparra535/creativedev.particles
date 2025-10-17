@@ -141,7 +141,7 @@ const FBOParticles = ({
         scene
       )}
 
-      <points ref={points}>
+      <points ref={points} scale={[2.5, 2.5, 2.5]}>
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
@@ -176,7 +176,7 @@ const R3FCanva = () => {
         shadows
         dpr={[1, 2]}
         performance={{ min: 0.5 }}
-        camera={{ position: [0, 0, 0], fov: 120, near: 0.1, far: 1000 }}
+        // camera={{ position: [0, 0, 5], fov: 120, near: 0.1, far: 1000 }}
         gl={{ antialias: true, powerPreference: "high-performance" }}
       >
         <ambientLight intensity={Math.PI / 2} />
@@ -186,6 +186,21 @@ const R3FCanva = () => {
           penumbra={1}
           decay={0}
           intensity={Math.PI}
+        />
+
+        <PerspectiveCamera
+          makeDefault
+          position={[0, 0, 0.2]}
+          fov={75}
+          near={0.1}
+          far={1000}
+        />
+
+        <FBOParticles
+          color1={[1, 0, 0.6]} // Rosa neón (magenta)
+          color2={[0, 1, 1]} // Cian eléctrico
+          speed={1} // Velocidad de animación
+          size={600}
         />
 
         <EffectComposer>
@@ -198,13 +213,6 @@ const R3FCanva = () => {
           <Bloom luminanceThreshold={0} luminanceSmoothing={0.9} height={300} />
           <Noise opacity={0.02} />
           <Vignette eskil={false} offset={0.1} darkness={1.1} />
-
-          <FBOParticles
-            color1={[1, 0, 0.6]} // Rosa neón (magenta)
-            color2={[0, 1, 1]} // Cian eléctrico
-            speed={1} // Velocidad de animación
-            size={250}
-          />
         </EffectComposer>
       </Canvas>
     </div>
