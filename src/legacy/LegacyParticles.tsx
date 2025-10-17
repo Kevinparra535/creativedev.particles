@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { createPortal, useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import settings from "../config/settings.config";
+import { createPingPong } from "../utils/fboHelper";
 
 // Minimal legacy-like shaders
 const quadVert = `
@@ -167,23 +168,9 @@ const LegacyParticles = () => {
   );
 
   const seedOnce = useRef(false);
-  const rtA = useMemo(
-    () =>
-      new THREE.WebGLRenderTarget(W, H, {
-        wrapS: THREE.ClampToEdgeWrapping,
-        wrapT: THREE.ClampToEdgeWrapping,
-        minFilter: THREE.NearestFilter,
-        magFilter: THREE.NearestFilter,
-        format: THREE.RGBAFormat,
-        type: THREE.FloatType,
-        depthBuffer: false,
-        stencilBuffer: false,
-      }),
-    [W, H]
-  );
-  const rtB = useMemo(() => rtA.clone(), [rtA]);
-  const ping = useRef<THREE.WebGLRenderTarget>(rtA);
-  const pong = useRef<THREE.WebGLRenderTarget>(rtB);
+  const pp = useMemo(() => createPingPong(W, H), [W, H]);
+  const ping = useRef<THREE.WebGLRenderTarget>(pp.write());
+  const pong = useRef<THREE.WebGLRenderTarget>(pp.read());
 
   // Points geometry for lookup uv in position.xy
   const lookups = useMemo(() => {
@@ -234,8 +221,15 @@ const LegacyParticles = () => {
     if (raycaster.ray.intersectPlane(plane, hit)) {
       (positionMat.uniforms.mouse3d.value as THREE.Vector3).copy(hit);
     }
-    // Sim uniforms
+    // Sim uniforms (dynamic from settings)
     positionMat.uniforms.time.value = t;
+    positionMat.uniforms.speed.value = settings.speed;
+    positionMat.uniforms.dieSpeed.value = settings.dieSpeed;
+    positionMat.uniforms.radius.value = settings.radius;
+    positionMat.uniforms.curlSize.value = settings.curlSize;
+    positionMat.uniforms.attraction.value = settings.followMouse
+      ? settings.attraction
+      : 0;
     // Set read texture and render to write
     positionMat.uniforms.texturePosition.value = pong.current.texture;
     gl.setRenderTarget(ping.current);
@@ -250,6 +244,8 @@ const LegacyParticles = () => {
     const mat = pointsRef.current.material as THREE.ShaderMaterial;
     (mat.uniforms.texturePosition.value as THREE.Texture) =
       pong.current.texture;
+    (mat.uniforms.color1.value as THREE.Color).set(settings.color1);
+    (mat.uniforms.color2.value as THREE.Color).set(settings.color2);
   });
 
   return (

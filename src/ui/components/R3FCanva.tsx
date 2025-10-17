@@ -3,6 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import Scene1 from "../scenes/lowQuality/Scene1";
 import settings from "../../config/settings.config";
+import PostFX from "./PostFX";
 
 // Componente principal con controles de color
 const R3FCanva = () => {
@@ -54,6 +55,7 @@ const R3FCanva = () => {
         />
 
         <Scene1 />
+        <PostFX />
       </Canvas>
     </div>
   );
