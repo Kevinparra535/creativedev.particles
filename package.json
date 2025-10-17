@@ -19,6 +19,7 @@
     "glslify-loader": "^2.0.0",
     "leva": "^0.10.0",
     "maath": "^0.10.8",
+    "mout": "^1.2.4",
     "postprocessing": "^6.37.8",
     "r3f-perf": "^7.2.3",
     "react": "^19.1.1",

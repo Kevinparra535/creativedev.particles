@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import settings from "../config/settings.config";
 import Simulator from "./Simulator";
-import MeshMotionMaterial from "../materials/MeshMotionMaterial";
+import MeshMotionMaterial from "../materials/motionBlur/MeshMotionMaterial";
 import {
   particlesFragmentShader,
   pointsVertexShader,
