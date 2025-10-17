@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import { fragmentShader } from "../../../materials/fragmentShader";
-import { lowQualityVertexShader } from "../../../materials/lowQualityVertexShader";
+import { spiritParticlesFragment } from "../../../materials/spiritParticlesFragment";
+import { spiritParticlesVertex } from "../../../materials/spiritParticlesVertex";
 
 export type LowQualityParticlesProps = {
   count?: number;
@@ -65,12 +65,11 @@ const LowQualityParticles = ({
     materialRef.current.uniforms.uFalloff.value = falloff;
   }
 
-  // Raycaster setup to project mouse to z=0 plane (world space)
+  // Raycaster setup: project mouse to a plane aligned with camera forward, through world origin
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
-  const plane = useMemo(
-    () => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0),
-    []
-  ); // z=0
+  const plane = useMemo(() => new THREE.Plane(), []);
+  const planeNormal = useMemo(() => new THREE.Vector3(), []);
+  const planePoint = useMemo(() => new THREE.Vector3(0, 0, 0), []); // origin (particles center)
   const intersectPoint = useMemo(() => new THREE.Vector3(), []);
 
   useFrame((state) => {
@@ -78,11 +77,16 @@ const LowQualityParticles = ({
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = clock.elapsedTime;
 
-      // Project pointer (NDC) to world-space on z=0 plane
+      // Update plane to face camera and pass through origin for intuitive picking
+      camera.getWorldDirection(planeNormal);
+      plane.setFromNormalAndCoplanarPoint(planeNormal, planePoint);
+
+      // Project pointer (NDC) to world-space on view-aligned plane
       raycaster.setFromCamera(pointer, camera);
-      raycaster.ray.intersectPlane(plane, intersectPoint);
-      const m = materialRef.current.uniforms.uMouse.value as THREE.Vector2;
-      m.set(intersectPoint.x, intersectPoint.y);
+      if (raycaster.ray.intersectPlane(plane, intersectPoint)) {
+        const m = materialRef.current.uniforms.uMouse.value as THREE.Vector2;
+        m.set(intersectPoint.x, intersectPoint.y);
+      }
     }
   });
 
@@ -95,8 +99,8 @@ const LowQualityParticles = ({
         ref={materialRef}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
-        fragmentShader={fragmentShader}
-        vertexShader={lowQualityVertexShader}
+        fragmentShader={spiritParticlesFragment}
+        vertexShader={spiritParticlesVertex}
         uniforms={uniforms as unknown as { [uniform: string]: THREE.IUniform }}
       />
     </points>
