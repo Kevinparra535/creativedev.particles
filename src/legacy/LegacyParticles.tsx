@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { createPortal, useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import settings from "../config/settings.config";
-import { createPingPong } from "../utils/fboHelper";
+import Simulator from "./Simulator";
 
 // Minimal legacy-like shaders
 const quadVert = `
@@ -119,10 +119,6 @@ const LegacyParticles = () => {
   // Offscreen scenes/materials
   const simScene = useMemo(() => new THREE.Scene(), []);
   const copyScene = useMemo(() => new THREE.Scene(), []);
-  const ortho = useMemo(
-    () => new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10),
-    []
-  );
   const fsGeo = useMemo(() => {
     const g = new THREE.BufferGeometry();
     const pos = new Float32Array([
@@ -167,10 +163,11 @@ const LegacyParticles = () => {
     [W, H]
   );
 
-  const seedOnce = useRef(false);
-  const pp = useMemo(() => createPingPong(W, H), [W, H]);
-  const ping = useRef<THREE.WebGLRenderTarget>(pp.write());
-  const pong = useRef<THREE.WebGLRenderTarget>(pp.read());
+  // Replace manual ping-pong with Simulator (legacy behavior)
+  const simulatorRef = useRef<Simulator | null>(null);
+  if (!simulatorRef.current) {
+    simulatorRef.current = new Simulator(gl, W, H);
+  }
 
   // Points geometry for lookup uv in position.xy
   const lookups = useMemo(() => {
@@ -186,7 +183,7 @@ const LegacyParticles = () => {
   }, [W, H]);
   const drawUniforms = useMemo(
     () => ({
-      texturePosition: { value: pong.current.texture },
+      texturePosition: { value: new THREE.Texture() },
       color1: { value: new THREE.Color(settings.color1) },
       color2: { value: new THREE.Color(settings.color2) },
     }),
@@ -195,20 +192,8 @@ const LegacyParticles = () => {
   const pointsRef = useRef<THREE.Points>(null!);
 
   useFrame((state) => {
-    const t = state.clock.elapsedTime;
-    // Seed both RTs once
-    if (!seedOnce.current) {
-      copyMat.uniforms.u_texture.value = positionMat.uniforms
-        .textureDefaultPosition.value as THREE.Texture;
-      gl.setRenderTarget(ping.current);
-      gl.clear(true, true, true);
-      gl.render(copyScene, ortho);
-      gl.setRenderTarget(pong.current);
-      gl.clear(true, true, true);
-      gl.render(copyScene, ortho);
-      gl.setRenderTarget(null);
-      seedOnce.current = true;
-    }
+  // const t = state.clock.elapsedTime;
+    // Seed already handled by Simulator on construct.
     // Mouse follow
     const normal = new THREE.Vector3();
     (camera as any).getWorldDirection(normal);
@@ -221,29 +206,16 @@ const LegacyParticles = () => {
     if (raycaster.ray.intersectPlane(plane, hit)) {
       (positionMat.uniforms.mouse3d.value as THREE.Vector3).copy(hit);
     }
-    // Sim uniforms (dynamic from settings)
-    positionMat.uniforms.time.value = t;
-    positionMat.uniforms.speed.value = settings.speed;
-    positionMat.uniforms.dieSpeed.value = settings.dieSpeed;
-    positionMat.uniforms.radius.value = settings.radius;
-    positionMat.uniforms.curlSize.value = settings.curlSize;
-    positionMat.uniforms.attraction.value = settings.followMouse
-      ? settings.attraction
-      : 0;
-    // Set read texture and render to write
-    positionMat.uniforms.texturePosition.value = pong.current.texture;
-    gl.setRenderTarget(ping.current);
-    gl.clear(true, true, true);
-    gl.render(simScene, ortho);
-    gl.setRenderTarget(null);
-    // Swap
-    const tmp = ping.current;
-    ping.current = pong.current;
-    pong.current = tmp;
+    // Update simulator (dt in ms) with mouse3d at the camera-aligned plane
+    simulatorRef.current!.initAnimation = 1; // allow immediate motion; wire if needed
+    simulatorRef.current!.update(
+      state.clock.getDelta() * 1000,
+      positionMat.uniforms.mouse3d.value as THREE.Vector3
+    );
     // Draw pass: update texture
     const mat = pointsRef.current.material as THREE.ShaderMaterial;
     (mat.uniforms.texturePosition.value as THREE.Texture) =
-      pong.current.texture;
+      simulatorRef.current!.positionRenderTarget.texture;
     (mat.uniforms.color1.value as THREE.Color).set(settings.color1);
     (mat.uniforms.color2.value as THREE.Color).set(settings.color2);
   });
