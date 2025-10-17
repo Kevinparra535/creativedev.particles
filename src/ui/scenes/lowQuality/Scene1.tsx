@@ -1,7 +1,26 @@
 import { useControls } from "leva";
 import LowQualityParticles from "../../components/particles/LowQualityParticles";
+import { usePerformanceOptimization } from "../../../core/presentation/usePerformanceOptimization";
+import PostFX from "../../components/PostFX";
 
 const Scene1 = () => {
+  // Performance-aware post-processing control via Leva + hook
+  const { currentQuality } = usePerformanceOptimization();
+  const postFx = useControls("PostFX", {
+    auto: { value: true },
+    enabled: { value: true },
+    dof: { value: true },
+    bloom: { value: true },
+    noise: { value: true },
+    vignette: { value: true },
+    smaa: { value: true },
+    temporalAccumulation: { value: false },
+    trailStrength: { value: 0.6, min: 0, max: 0.98, step: 0.01 },
+  });
+  const effectivePostEnabled = postFx.auto
+    ? Boolean(currentQuality?.postProcessing)
+    : postFx.enabled;
+
   const { count, radius, pointSize, attract, falloff } = useControls(
     "Low Quality Particles",
     {
@@ -14,13 +33,25 @@ const Scene1 = () => {
   );
 
   return (
-    <LowQualityParticles
-      count={count}
-      radius={radius}
-      pointSize={pointSize}
-      attract={attract}
-      falloff={falloff}
-    />
+    <>
+      <LowQualityParticles
+        count={count}
+        radius={radius}
+        pointSize={pointSize}
+        attract={attract}
+        falloff={falloff}
+      />
+      <PostFX
+        enabled={effectivePostEnabled}
+        dof={postFx.dof}
+        bloom={postFx.bloom}
+        noise={postFx.noise}
+        vignette={postFx.vignette}
+        smaa={postFx.smaa}
+        temporalAccumulation={postFx.temporalAccumulation}
+        trailStrength={postFx.trailStrength}
+      />
+    </>
   );
 };
 

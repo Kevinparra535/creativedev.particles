@@ -22,7 +22,15 @@ const R3FCanva = () => {
           intensity={Math.PI}
         />
 
-        <OrthographicCamera makeDefault position={[0, 0, 5]} zoom={100} />
+        <OrthographicCamera
+          makeDefault
+          // fov={45}
+          // aspect={1}
+          // near={10}
+          // far={3000}
+          position={[0, 0, 5]}
+          zoom={100}
+        />
 
         <OrbitControls
           makeDefault
@@ -50,18 +58,6 @@ const R3FCanva = () => {
         />
 
         <Scene1 />
-
-        {/* <EffectComposer>
-          <DepthOfField
-            focusDistance={0}
-            focalLength={0.02}
-            bokehScale={2}
-            height={480}
-          />
-          <Bloom luminanceThreshold={0} luminanceSmoothing={0.9} height={300} />
-          <Noise opacity={0.02} />
-          <Vignette eskil={false} offset={0.1} darkness={1.1} />
-        </EffectComposer> */}
       </Canvas>
     </div>
   );

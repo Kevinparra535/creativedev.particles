@@ -7,7 +7,7 @@ const getRandomDataSphere = (width: number, height: number) => {
   const data = new Float32Array(length);
   for (let i = 0; i < width * height; i++) {
     const stride = i * 4;
-  const distance = Math.sqrt(Math.random()) * 2;
+    const distance = Math.sqrt(Math.random()) * 2;
     const theta = THREE.MathUtils.randFloatSpread(360);
     const phi = THREE.MathUtils.randFloatSpread(360);
     data[stride] = distance * Math.sin(theta) * Math.cos(phi);
@@ -22,9 +22,9 @@ const getRandomDataBox = (width: number, height: number) => {
   const data = new Float32Array(width * height * 4);
   for (let i = 0; i < width * height; i++) {
     const stride = i * 4;
-  data[stride] = (Math.random() - 0.5) * 2;
-  data[stride + 1] = (Math.random() - 0.5) * 2;
-  data[stride + 2] = (Math.random() - 0.5) * 2;
+    data[stride] = (Math.random() - 0.5) * 2;
+    data[stride + 1] = (Math.random() - 0.5) * 2;
+    data[stride + 2] = (Math.random() - 0.5) * 2;
     data[stride + 3] = Math.random();
   }
   return data;
@@ -57,15 +57,17 @@ class SpiritSimulationMaterial extends THREE.ShaderMaterial {
       uTime: { value: 0 },
       uSpeed: { value: 1 },
       uDieSpeed: { value: 0.002 },
-  uRadius: { value: 1 },
+      uRadius: { value: 1 },
       uCurlSize: { value: 0.002 },
-  uAttraction: { value: 1 },
-  uInitAnimation: { value: 1 },
+      uAttraction: { value: 1 },
+      uInitAnimation: { value: 1 },
       uMouse3d: { value: new THREE.Vector3(0, 0, 0) },
     } as const;
 
     super({
-      uniforms: simulationUniforms as unknown as { [k: string]: THREE.IUniform },
+      uniforms: simulationUniforms as unknown as {
+        [k: string]: THREE.IUniform;
+      },
       vertexShader: simulationVertexShader,
       fragmentShader: spiritSimulationFragment,
     });
