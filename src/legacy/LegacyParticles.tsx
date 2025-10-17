@@ -1,176 +1,26 @@
 import * as THREE from "three";
-import { createPortal, useFrame, useThree } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import settings from "../config/settings.config";
 import Simulator from "./Simulator";
-
-// Minimal legacy-like shaders
-const quadVert = `
-precision highp float;
-attribute vec3 position;
-attribute vec2 uv;
-varying vec2 vUv;
-void main(){ vUv = uv; gl_Position = vec4(position,1.0); }
-`;
-const copyFrag = `
-precision highp float;
-uniform sampler2D u_texture;
-varying vec2 vUv;
-void main(){ gl_FragColor = texture2D(u_texture, vUv); }
-`;
-const positionFrag = `
-precision highp float;
-uniform vec2 uResolution;
-uniform sampler2D texturePosition;
-uniform sampler2D textureDefaultPosition;
-uniform float time;
-uniform float speed;
-uniform float dieSpeed;
-uniform float radius;
-uniform float curlSize;
-uniform float attraction;
-uniform float initAnimation;
-uniform vec3 mouse3d;
-
-vec3 curl(vec3 p, float t, float s) {
-  // lightweight placeholder; can be swapped by full legacy curl if needed
-  float x = sin(p.y + t) * cos(p.z * s);
-  float y = sin(p.z + t) * cos(p.x * s);
-  float z = sin(p.x + t) * cos(p.y * s);
-  return vec3(x, y, z);
-}
-
-void main(){
-  vec2 uv = gl_FragCoord.xy / uResolution;
-  vec4 info = texture2D(texturePosition, uv);
-  vec3 pos = mix(vec3(0.0,-200.0,0.0), info.xyz, smoothstep(0.0,0.3,initAnimation));
-  float life = info.w - dieSpeed;
-  vec3 follow = mix(vec3(0.0, -(1.0 - initAnimation) * 200.0, 0.0), mouse3d, smoothstep(0.2, 0.7, initAnimation));
-  if(life < 0.0){
-    vec4 seed = texture2D(textureDefaultPosition, uv);
-    pos = seed.xyz * (1.0 + sin(time*15.0)*0.2 + (1.0 - initAnimation)) * 0.4 * radius;
-    pos += follow;
-    life = 0.5 + fract(seed.w * 21.4131 + time);
-  }else{
-    vec3 delta = follow - pos;
-    float dist = length(delta);
-    pos += delta * (0.005 + life * 0.01) * attraction * (1.0 - smoothstep(50.0, 350.0, dist)) * speed;
-    pos += curl(pos * curlSize, time, 0.1 + (1.0 - life) * 0.1) * speed;
-  }
-  gl_FragColor = vec4(pos, life);
-}
-`;
-const particlesVert = `
-precision highp float;
-uniform sampler2D texturePosition;
-varying float vLife;
-void main(){
-  vec4 info = texture2D(texturePosition, position.xy);
-  vLife = info.w;
-  vec4 modelPosition = modelMatrix * vec4(info.xyz, 1.0);
-  vec4 viewPosition = viewMatrix * modelPosition;
-  gl_Position = projectionMatrix * viewPosition;
-  float d = length(viewPosition.xyz);
-  gl_PointSize = 1300.0 / max(0.0001, d) * smoothstep(0.0, 0.2, vLife);
-}
-`;
-const particlesFrag = `
-precision highp float;
-varying float vLife;
-uniform vec3 color1; uniform vec3 color2;
-void main(){
-  vec3 col = mix(color2, color1, smoothstep(0.0, 0.7, vLife));
-  vec2 d = gl_PointCoord - 0.5;
-  float alpha = 1.0 - smoothstep(0.2, 0.5, length(d));
-  gl_FragColor = vec4(col, alpha);
-}
-`;
-
-function makeSeedTexture(w: number, h: number) {
-  const data = new Float32Array(w * h * 4);
-  for (let i = 0; i < w * h; i++) {
-    const stride = i * 4;
-    const r = (0.5 + Math.random() * 0.5) * 50;
-    const phi = (Math.random() - 0.5) * Math.PI;
-    const theta = Math.random() * Math.PI * 2;
-    data[stride + 0] = r * Math.cos(theta) * Math.cos(phi);
-    data[stride + 1] = r * Math.sin(phi);
-    data[stride + 2] = r * Math.sin(theta) * Math.cos(phi);
-    data[stride + 3] = Math.random();
-  }
-  const tex = new THREE.DataTexture(
-    data,
-    w,
-    h,
-    THREE.RGBAFormat,
-    THREE.FloatType
-  );
-  tex.needsUpdate = true;
-  tex.generateMipmaps = false;
-  tex.flipY = false;
-  return tex;
-}
+import MeshMotionMaterial from "../materials/MeshMotionMaterial";
+import {
+  particlesFragmentShader,
+  pointsVertexShader,
+  trianglesFragmentShader,
+  trianglesVertexShader,
+} from "../materials/particlesShaders";
 
 const LegacyParticles = () => {
   const { gl, camera, raycaster, pointer } = useThree();
   const W = settings.simulatorTextureWidth;
   const H = settings.simulatorTextureHeight;
 
-  // Offscreen scenes/materials
-  const simScene = useMemo(() => new THREE.Scene(), []);
-  const copyScene = useMemo(() => new THREE.Scene(), []);
-  const fsGeo = useMemo(() => {
-    const g = new THREE.BufferGeometry();
-    const pos = new Float32Array([
-      -1, -1, 0, 1, -1, 0, 1, 1, 0, -1, -1, 0, 1, 1, 0, -1, 1, 0,
-    ]);
-    const uv = new Float32Array([0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1]);
-    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-    g.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
-    return g;
-  }, []);
-
-  const copyMat = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        uniforms: { u_texture: { value: null as unknown as THREE.Texture } },
-        vertexShader: quadVert,
-        fragmentShader: copyFrag,
-      }),
-    []
-  );
-
-  const positionMat = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        uniforms: {
-          uResolution: { value: new THREE.Vector2(W, H) },
-          texturePosition: { value: null as unknown as THREE.Texture },
-          textureDefaultPosition: { value: makeSeedTexture(W, H) },
-          time: { value: 0 },
-          speed: { value: settings.speed },
-          dieSpeed: { value: settings.dieSpeed },
-          radius: { value: settings.radius },
-          curlSize: { value: settings.curlSize },
-          attraction: { value: settings.attraction },
-          initAnimation: { value: 1 },
-          mouse3d: { value: new THREE.Vector3() },
-        },
-        vertexShader: quadVert,
-        fragmentShader: positionFrag,
-        depthTest: false,
-        depthWrite: false,
-      }),
-    [W, H]
-  );
-
-  // Replace manual ping-pong with Simulator (legacy behavior)
   const simulatorRef = useRef<Simulator | null>(null);
   if (!simulatorRef.current) {
     simulatorRef.current = new Simulator(gl, W, H);
   }
 
-  // Points geometry for lookup uv in position.xy
   const lookups = useMemo(() => {
     const count = W * H;
     const arr = new Float32Array(count * 3);
@@ -182,6 +32,7 @@ const LegacyParticles = () => {
     }
     return arr;
   }, [W, H]);
+
   const drawUniforms = useMemo(
     () => ({
       texturePosition: { value: new THREE.Texture() },
@@ -190,13 +41,28 @@ const LegacyParticles = () => {
     }),
     []
   );
+
   const pointsRef = useRef<THREE.Points>(null!);
+  const trianglesRef = useRef<THREE.Mesh>(null!);
+  const flipRef = useRef(0);
+  const motionMatRef = useRef<MeshMotionMaterial | null>(null);
+  const tmpColor = useRef(new THREE.Color());
+  const col1 = useRef(new THREE.Color(settings.color1));
+  const col2 = useRef(new THREE.Color(settings.color2));
+  const mouse3dRef = useRef(new THREE.Vector3());
   const initAnimRef = useRef(0);
 
-  // Recreate simulator on amount change and dispose on unmount
+  useEffect(() => {
+    if (trianglesRef.current && !motionMatRef.current) {
+      motionMatRef.current = new MeshMotionMaterial({
+        uniforms: { size: { value: 1 } },
+      });
+      (trianglesRef.current as any).motionMaterial = motionMatRef.current;
+    }
+  }, []);
+
   useEffect(() => {
     simulatorRef.current!.recreate(W, H);
-    // reset intro animation to replay easing if desired
     initAnimRef.current = 0;
     return () => {
       simulatorRef.current?.dispose();
@@ -205,13 +71,13 @@ const LegacyParticles = () => {
   }, [W, H]);
 
   useFrame((state) => {
-    // Advance intro animation like legacy: init += dt(ms)*0.00025 → dt(s)*0.25
+    // intro animation timing similar to legacy
     initAnimRef.current = Math.min(
       1,
       initAnimRef.current + state.clock.getDelta() * 0.25
     );
-    // Seed already handled by Simulator on construct.
-    // Mouse follow
+
+    // project mouse onto a plane facing the camera through origin
     const normal = new THREE.Vector3();
     (camera as any).getWorldDirection(normal);
     const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(
@@ -221,71 +87,158 @@ const LegacyParticles = () => {
     raycaster.setFromCamera(pointer, camera);
     const hit = new THREE.Vector3();
     if (raycaster.ray.intersectPlane(plane, hit)) {
-      (positionMat.uniforms.mouse3d.value as THREE.Vector3).copy(hit);
+      mouse3dRef.current.copy(hit);
     }
-    // Update simulator (dt in ms) with mouse3d at the camera-aligned plane
+
     simulatorRef.current!.initAnimation = initAnimRef.current;
     simulatorRef.current!.update(
       state.clock.getDelta() * 1000,
-      positionMat.uniforms.mouse3d.value as THREE.Vector3
+      mouse3dRef.current
     );
-    // Draw pass: update texture
-    const mat = pointsRef.current.material as THREE.ShaderMaterial;
-    (mat.uniforms.texturePosition.value as THREE.Texture) =
-      simulatorRef.current!.positionRenderTarget.texture;
-    (mat.uniforms.color1.value as THREE.Color).set(settings.color1);
-    (mat.uniforms.color2.value as THREE.Color).set(settings.color2);
+
+    const posTex = simulatorRef.current!.positionRenderTarget.texture;
+    const prevPosTex = simulatorRef.current!.prevPositionRenderTarget.texture;
+
+    // smooth color transitions like legacy
+    tmpColor.current.setStyle(settings.color1);
+    col1.current.lerp(tmpColor.current, 0.05);
+    tmpColor.current.setStyle(settings.color2);
+    col2.current.lerp(tmpColor.current, 0.05);
+
+    if (pointsRef.current) {
+      const mat = pointsRef.current.material as THREE.ShaderMaterial;
+      (mat.uniforms.texturePosition.value as THREE.Texture) = posTex;
+      (mat.uniforms.color1.value as THREE.Color).copy(col1.current);
+      (mat.uniforms.color2.value as THREE.Color).copy(col2.current);
+    }
+
+    if (trianglesRef.current) {
+      const tMat = trianglesRef.current.material as THREE.ShaderMaterial;
+      (tMat.uniforms.texturePosition.value as THREE.Texture) = posTex;
+      (tMat.uniforms.color1.value as THREE.Color).copy(col1.current);
+      (tMat.uniforms.color2.value as THREE.Color).copy(col2.current);
+      tMat.uniforms.flipRatio.value = flipRef.current ^= 1;
+      const motion = (trianglesRef.current as any).motionMaterial as
+        | MeshMotionMaterial
+        | undefined;
+      if (motion) {
+        motion.uniforms.texturePosition.value = posTex;
+        motion.uniforms.texturePrevPosition.value = prevPosTex;
+        motion.uniforms.flipRatio.value = flipRef.current;
+      }
+    }
+
+    if (pointsRef.current)
+      pointsRef.current.visible = !settings.useTriangleParticles;
+    if (trianglesRef.current)
+      trianglesRef.current.visible = settings.useTriangleParticles;
   });
 
   return (
     <>
-      {/* Sim scenes */}
-      {createPortal(
-        <mesh>
-          <shaderMaterial args={[positionMat]} />
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              args={[fsGeo.getAttribute("position").array as Float32Array, 3]}
-            />
-            <bufferAttribute
-              attach="attributes-uv"
-              args={[fsGeo.getAttribute("uv").array as Float32Array, 2]}
-            />
-          </bufferGeometry>
-        </mesh>,
-        simScene
-      )}
-      {createPortal(
-        <mesh>
-          <shaderMaterial args={[copyMat]} />
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              args={[fsGeo.getAttribute("position").array as Float32Array, 3]}
-            />
-            <bufferAttribute
-              attach="attributes-uv"
-              args={[fsGeo.getAttribute("uv").array as Float32Array, 2]}
-            />
-          </bufferGeometry>
-        </mesh>,
-        copyScene
-      )}
-
-      {/* Draw */}
-      <points ref={pointsRef}>
+      {/* Points */}
+      <points ref={pointsRef} visible={!settings.useTriangleParticles}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[lookups, 3]} />
         </bufferGeometry>
         <shaderMaterial
-          vertexShader={particlesVert}
-          fragmentShader={particlesFrag}
+          vertexShader={pointsVertexShader}
+          fragmentShader={particlesFragmentShader}
           uniforms={drawUniforms as unknown as { [k: string]: THREE.IUniform }}
           blending={THREE.NoBlending}
           depthWrite
         />
       </points>
+
+      {/* Triangles */}
+      <mesh ref={trianglesRef as any} visible={settings.useTriangleParticles}>
+        <bufferGeometry>
+          {(() => {
+            const count = W * H;
+            const PI = Math.PI;
+            const angle = (PI * 2) / 3;
+            const angles = [
+              Math.sin(angle * 2 + PI),
+              Math.cos(angle * 2 + PI),
+              Math.sin(angle + PI),
+              Math.cos(angle + PI),
+              Math.sin(angle * 3 + PI),
+              Math.cos(angle * 3 + PI),
+              Math.sin(angle * 2),
+              Math.cos(angle * 2),
+              Math.sin(angle),
+              Math.cos(angle),
+              Math.sin(angle * 3),
+              Math.cos(angle * 3),
+            ];
+            const pos = new Float32Array(count * 3 * 3);
+            const posFlip = new Float32Array(count * 3 * 3);
+            const fboUV = new Float32Array(count * 2 * 3);
+            for (let i = 0; i < count; i++) {
+              const i6 = i * 6;
+              const i9 = i * 9;
+              if (i % 2) {
+                pos[i9 + 0] = angles[0];
+                pos[i9 + 1] = angles[1];
+                pos[i9 + 3] = angles[2];
+                pos[i9 + 4] = angles[3];
+                pos[i9 + 6] = angles[4];
+                pos[i9 + 7] = angles[5];
+                posFlip[i9 + 0] = angles[6];
+                posFlip[i9 + 1] = angles[7];
+                posFlip[i9 + 3] = angles[8];
+                posFlip[i9 + 4] = angles[9];
+                posFlip[i9 + 6] = angles[10];
+                posFlip[i9 + 7] = angles[11];
+              } else {
+                posFlip[i9 + 0] = angles[0];
+                posFlip[i9 + 1] = angles[1];
+                posFlip[i9 + 3] = angles[2];
+                posFlip[i9 + 4] = angles[3];
+                posFlip[i9 + 6] = angles[4];
+                posFlip[i9 + 7] = angles[5];
+                pos[i9 + 0] = angles[6];
+                pos[i9 + 1] = angles[7];
+                pos[i9 + 3] = angles[8];
+                pos[i9 + 4] = angles[9];
+                pos[i9 + 6] = angles[10];
+                pos[i9 + 7] = angles[11];
+              }
+              const ix = i % W;
+              const iy = Math.trunc(i / W);
+              const u = ix / W;
+              const v = iy / H;
+              fboUV[i6 + 0] = fboUV[i6 + 2] = fboUV[i6 + 4] = u;
+              fboUV[i6 + 1] = fboUV[i6 + 3] = fboUV[i6 + 5] = v;
+            }
+            return (
+              <>
+                <bufferAttribute attach="attributes-position" args={[pos, 3]} />
+                <bufferAttribute
+                  attach="attributes-positionFlip"
+                  args={[posFlip, 3]}
+                />
+                <bufferAttribute attach="attributes-fboUV" args={[fboUV, 2]} />
+              </>
+            );
+          })()}
+        </bufferGeometry>
+        <shaderMaterial
+          vertexShader={trianglesVertexShader}
+          fragmentShader={trianglesFragmentShader}
+          uniforms={
+            {
+              texturePosition: { value: new THREE.Texture() },
+              flipRatio: { value: 0 },
+              color1: { value: new THREE.Color(settings.color1) },
+              color2: { value: new THREE.Color(settings.color2) },
+              size: { value: 1 },
+            } as unknown as { [k: string]: THREE.IUniform }
+          }
+          blending={THREE.NoBlending}
+          depthWrite
+        />
+      </mesh>
     </>
   );
 };
