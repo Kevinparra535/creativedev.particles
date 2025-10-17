@@ -84,10 +84,13 @@ function getIsMobile(ua: string): boolean {
 // Parses a URL like legacy's settings.js but using URLSearchParams.
 export function getInitialSettings(url?: string, ua?: string): SettingsConfig {
   const hasWindow = (globalThis as any)?.window !== undefined;
+
   const w: Window | undefined = hasWindow
     ? ((globalThis as any).window as Window)
     : undefined;
+
   const search = w ? w.location.search : url ? new URL(url).search : "";
+
   const params = new URLSearchParams(search);
 
   // amount
@@ -95,6 +98,7 @@ export function getInitialSettings(url?: string, ua?: string): SettingsConfig {
   const amount: AmountKey = amountList.includes(amountParam)
     ? amountParam
     : "65k";
+
   const [simulatorTextureWidth, simulatorTextureHeight, radius] =
     amountMap[amount];
 

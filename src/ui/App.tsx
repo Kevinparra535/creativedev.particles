@@ -1,4 +1,4 @@
-import Controls from "./components/Controls";
+import Controls from "./components/controls/Controls";
 import R3FCanva from "./components/R3FCanva";
 import { GlobalStyles, BaseContainer } from "./styles/base";
 

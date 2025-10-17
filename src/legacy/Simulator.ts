@@ -1,23 +1,12 @@
 import * as THREE from "three";
-import settings from "../config/settings.config";
-import { spiritSimulationFragment } from "../materials/spiritSimulationFragment";
 
-const quadVert = `
-precision highp float;
-attribute vec3 position;
-attribute vec2 uv;
-varying vec2 vUv;
-void main(){ vUv = uv; gl_Position = vec4(position,1.0); }
-`;
+import quadVert from "../materials/glsl/quad.vert";
+import throughFrag from "../materials/glsl/through.frag";
+import positionFrag from "../materials/glsl/position.frag";
 
-const copyFrag = `
-precision highp float;
-uniform sampler2D u_texture;
-varying vec2 vUv;
-void main(){ gl_FragColor = texture2D(u_texture, vUv); }
-`;
-
-// (No-op utility; kept minimal fullscreen via PlaneGeometry.)
+import shaderParse from "../utils/shaderParse";
+import DefaultSettings from "../config/settings.config";
+import glslify from "glslify";
 
 export class Simulator {
   renderer: THREE.WebGLRenderer;
@@ -27,8 +16,8 @@ export class Simulator {
   scene: THREE.Scene;
   camera: THREE.Camera;
   quad: THREE.Mesh;
-  copyMat: THREE.ShaderMaterial;
-  positionMat: THREE.ShaderMaterial;
+  copyMat: THREE.RawShaderMaterial;
+  positionMat: THREE.RawShaderMaterial;
   defaultSeed: THREE.DataTexture;
   rtA: THREE.WebGLRenderTarget;
   rtB: THREE.WebGLRenderTarget;
@@ -36,7 +25,7 @@ export class Simulator {
   followPoint = new THREE.Vector3();
   followPointTime = 0;
   initAnimation = 0;
-
+  rawShaderPrefix: string;
   positionRenderTarget!: THREE.WebGLRenderTarget;
   prevPositionRenderTarget!: THREE.WebGLRenderTarget;
 
@@ -46,46 +35,57 @@ export class Simulator {
     this.height = height;
     this.amount = width * height;
 
-    // Setup offscreen scene/camera
+    // Offscreen scene/camera + full-screen quad
     this.scene = new THREE.Scene();
     this.camera = new THREE.Camera();
     (this.camera.position as any).z = 1;
 
-    // Materials
-    this.copyMat = new THREE.ShaderMaterial({
-      uniforms: { u_texture: { value: null as unknown as THREE.Texture } },
-      vertexShader: quadVert,
-      fragmentShader: copyFrag,
-      depthWrite: false,
-      depthTest: false,
-    });
-    this.positionMat = new THREE.ShaderMaterial({
+    this.rawShaderPrefix = `precision ${renderer.capabilities.precision} float;\n`;
+
+    this.copyMat = new THREE.RawShaderMaterial({
       uniforms: {
-        uResolution: { value: new THREE.Vector2(width, height) },
-        positionsA: { value: null as unknown as THREE.Texture },
-        positionsB: { value: null as unknown as THREE.Texture },
-        uTime: { value: 0 },
-        uSpeed: { value: settings.speed },
-        uDieSpeed: { value: settings.dieSpeed },
-        uRadius: { value: settings.radius },
-        uCurlSize: { value: settings.curlSize },
-        uAttraction: { value: settings.attraction },
-        uInitAnimation: { value: 0 },
-        uMouse3d: { value: new THREE.Vector3() },
+        resolution: {
+          type: "v2",
+          value: new THREE.Vector2(this.width, this.height),
+        },
+        texture: { type: "t", value: undefined },
       },
-      vertexShader: quadVert,
-      fragmentShader: spiritSimulationFragment,
+      vertexShader:
+        this.rawShaderPrefix + shaderParse(glslify("../glsl/quad.vert")),
+      fragmentShader:
+        this.rawShaderPrefix + shaderParse(glslify("../glsl/through.frag")),
+    });
+
+    this.positionMat = new THREE.RawShaderMaterial({
+      uniforms: {
+        resolution: {
+          type: "v2",
+          value: new THREE.Vector2(this.width, this.height),
+        },
+        texturePosition: { type: "t", value: undefined },
+        textureDefaultPosition: { type: "t", value: undefined },
+        mouse3d: { type: "v3", value: new THREE.Vector3() },
+        speed: { type: "f", value: 1 },
+        dieSpeed: { type: "f", value: 0 },
+        radius: { type: "f", value: 0 },
+        curlSize: { type: "f", value: 0 },
+        attraction: { type: "f", value: 0 },
+        time: { type: "f", value: 0 },
+        initAnimation: { type: "f", value: 0 },
+      },
+      vertexShader:
+        this.rawShaderPrefix + shaderParse(glslify("../glsl/quad.vert")),
+      fragmentShader:
+        this.rawShaderPrefix + shaderParse(glslify("../glsl/position.frag")),
       blending: THREE.NoBlending,
       transparent: false,
       depthWrite: false,
       depthTest: false,
     });
 
-    // Fullscreen quad
     this.quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.copyMat);
     this.scene.add(this.quad);
 
-    // Render targets
     this.rtA = new THREE.WebGLRenderTarget(width, height, {
       wrapS: THREE.ClampToEdgeWrapping,
       wrapT: THREE.ClampToEdgeWrapping,
@@ -96,9 +96,10 @@ export class Simulator {
       depthBuffer: false,
       stencilBuffer: false,
     });
+
     this.rtB = this.rtA.clone();
 
-    // Seed positionsB and copy to both RTs
+    // Seed once and copy to both RTs
     this.defaultSeed = this.createSeedTexture();
     this.copyTexture(this.defaultSeed, this.rtA);
     this.copyTexture(this.rtA.texture, this.rtB);
@@ -109,14 +110,16 @@ export class Simulator {
 
   private copyTexture(input: THREE.Texture, output: THREE.WebGLRenderTarget) {
     this.quad.material = this.copyMat;
-    this.copyMat.uniforms.u_texture.value = input;
+    this.copyMat.uniforms.texture.value = input; // ← ahora existe
     this.renderer.setRenderTarget(output);
     this.renderer.render(this.scene, this.camera);
     this.renderer.setRenderTarget(null);
   }
 
   private createSeedTexture() {
+    console.log("Creating seed texture with", this.amount, "particles");
     const positions = new Float32Array(this.amount * 4);
+    console.log("positions array len", positions.length);
     for (let i = 0; i < this.amount; i++) {
       const i4 = i * 4;
       const r = (0.5 + Math.random() * 0.5) * 50;
@@ -125,7 +128,7 @@ export class Simulator {
       positions[i4 + 0] = r * Math.cos(theta) * Math.cos(phi);
       positions[i4 + 1] = r * Math.sin(phi);
       positions[i4 + 2] = r * Math.sin(theta) * Math.cos(phi);
-      positions[i4 + 3] = Math.random();
+      positions[i4 + 3] = Math.random(); // life seed
     }
     const texture = new THREE.DataTexture(
       positions,
@@ -143,22 +146,19 @@ export class Simulator {
   }
 
   recreate(width: number, height: number) {
-    // Dispose old RTs
     this.rtA.dispose();
     this.rtB.dispose();
 
-    // Update dims
     this.width = width;
     this.height = height;
     this.amount = width * height;
 
-    // Update uniform resolution
-    (this.positionMat.uniforms.uResolution.value as THREE.Vector2).set(
+    // Update uniform (legacy name)
+    (this.positionMat.uniforms.resolution.value as THREE.Vector2).set(
       width,
       height
     );
 
-    // Create new RTs
     this.rtA = new THREE.WebGLRenderTarget(width, height, {
       wrapS: THREE.ClampToEdgeWrapping,
       wrapT: THREE.ClampToEdgeWrapping,
@@ -171,7 +171,6 @@ export class Simulator {
     });
     this.rtB = this.rtA.clone();
 
-    // New seed
     this.defaultSeed = this.createSeedTexture();
     this.copyTexture(this.defaultSeed, this.rtA);
     this.copyTexture(this.rtA.texture, this.rtB);
@@ -189,53 +188,54 @@ export class Simulator {
   }
 
   update(dt: number, mouse3d: THREE.Vector3) {
-    if (!(settings.speed || settings.dieSpeed)) {
-      return;
-    }
-
-    // Scale by dt like legacy (relative to ~16.6667ms)
+    // Scale by dt like legacy (relative to 16.6667ms)
     const deltaRatio = dt / 16.6667;
-    const uniforms = this.positionMat.uniforms;
-    uniforms.uSpeed.value = settings.speed * deltaRatio;
-    uniforms.uDieSpeed.value = settings.dieSpeed * deltaRatio;
-    uniforms.uRadius.value = settings.radius;
-    uniforms.uCurlSize.value = settings.curlSize;
-    uniforms.uAttraction.value = settings.attraction;
-    uniforms.uInitAnimation.value = this.initAnimation;
+    const u = this.positionMat.uniforms;
 
-    if (settings.followMouse) {
-      (uniforms.uMouse3d.value as THREE.Vector3).copy(mouse3d);
+    // Match shader uniform names (no 'u' prefix)
+    u.speed.value = DefaultSettings.speed * deltaRatio;
+    u.dieSpeed.value = DefaultSettings.dieSpeed * deltaRatio;
+    u.radius.value = DefaultSettings.radius;
+    u.curlSize.value = DefaultSettings.curlSize;
+    u.attraction.value = DefaultSettings.attraction;
+    u.initAnimation.value = this.initAnimation;
+    (u.time.value as number) = (u.time.value as number) + dt * 0.001;
+
+    if (DefaultSettings.followMouse) {
+      (u.mouse3d.value as THREE.Vector3).copy(mouse3d);
     } else {
-      const isMobile = settings.isMobile;
-      const r = isMobile ? 100 : 200;
-      const h = isMobile ? 40 : 60;
-      this.followPointTime += dt * 0.001 * settings.speed;
+      const r = DefaultSettings.isMobile ? 100 : 200;
+      const h = DefaultSettings.isMobile ? 40 : 60;
+      this.followPointTime += dt * 0.001 * DefaultSettings.speed;
       this.followPoint.set(
         Math.cos(this.followPointTime) * r,
-  Math.cos(this.followPointTime * 4) * h,
-  Math.sin(this.followPointTime * 2) * r
+        Math.cos(this.followPointTime * 4) * h,
+        Math.sin(this.followPointTime * 2) * r
       );
-      (uniforms.uMouse3d.value as THREE.Vector3).lerp(this.followPoint, 0.2);
+      (u.mouse3d.value as THREE.Vector3).lerp(this.followPoint, 0.2);
     }
 
-    // Swap
+    // Swap RTs (read = rtB, write = rtA)
     const tmp = this.rtA;
     this.rtA = this.rtB;
     this.rtB = tmp;
 
-    // Render position shader: read prev (rtB), write to rtA
+    // Bind correct inputs for the sim shader like legacy
+    u.textureDefaultPosition.value = this.defaultSeed;
+    u.texturePosition.value = this.rtB.texture;
+
     this.quad.material = this.positionMat;
-    uniforms.positionsB.value = this.defaultSeed;
-    uniforms.positionsA.value = this.rtB.texture;
-    uniforms.uTime.value = (uniforms.uTime.value as number) + dt * 0.001;
     this.renderer.setRenderTarget(this.rtA);
     this.renderer.render(this.scene, this.camera);
     this.renderer.setRenderTarget(null);
 
-    // Expose like legacy
     this.positionRenderTarget = this.rtA;
     this.prevPositionRenderTarget = this.rtB;
   }
 }
 
 export default Simulator;
+
+// console.debug('quadVert len', quadVert.length);
+// console.debug('throughFrag len', throughFrag.length);
+// console.debug('positionFrag len', positionFrag.length);

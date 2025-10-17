@@ -1,6 +1,6 @@
 import { folder, useControls } from "leva";
-import settings, { amountList, amountMap, motionBlurQualityList } from "../../config/settings.config";
-import type { MotionBlurQualityKey, AmountKey } from "../../config/settings.config";
+import settings, { amountList, amountMap, motionBlurQualityList } from "../../../config/settings.config";
+import type { MotionBlurQualityKey, AmountKey } from "../../../config/settings.config";
 
 const Controls = () => {
   useControls(
