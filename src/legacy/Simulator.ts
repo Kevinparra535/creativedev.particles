@@ -1,12 +1,11 @@
 import * as THREE from "three";
 
-import quadVert from "../materials/glsl/quad.vert";
-import throughFrag from "../materials/glsl/through.frag";
-import positionFrag from "../materials/glsl/position.frag";
+import quadVert from "../glsl/quad.vert?raw";
+import throughFrag from "../glsl/through.frag?raw";
+import positionFrag from "../glsl/position.frag?raw";
 
 import shaderParse from "../utils/shaderParse";
 import DefaultSettings from "../config/settings.config";
-import glslify from "glslify";
 
 export class Simulator {
   renderer: THREE.WebGLRenderer;
@@ -50,10 +49,9 @@ export class Simulator {
         },
         texture: { type: "t", value: undefined },
       },
-      vertexShader:
-        this.rawShaderPrefix + shaderParse(glslify("../glsl/quad.vert")),
-      fragmentShader:
-        this.rawShaderPrefix + shaderParse(glslify("../glsl/through.frag")),
+      vertexShader: this.rawShaderPrefix + shaderParse(quadVert),
+      fragmentShader: this.rawShaderPrefix + shaderParse(throughFrag),
+      glslVersion: THREE.GLSL3,
     });
 
     this.positionMat = new THREE.RawShaderMaterial({
@@ -73,14 +71,13 @@ export class Simulator {
         time: { type: "f", value: 0 },
         initAnimation: { type: "f", value: 0 },
       },
-      vertexShader:
-        this.rawShaderPrefix + shaderParse(glslify("../glsl/quad.vert")),
-      fragmentShader:
-        this.rawShaderPrefix + shaderParse(glslify("../glsl/position.frag")),
+      vertexShader: this.rawShaderPrefix + shaderParse(quadVert),
+      fragmentShader: this.rawShaderPrefix + shaderParse(positionFrag),
       blending: THREE.NoBlending,
       transparent: false,
       depthWrite: false,
       depthTest: false,
+      glslVersion: THREE.GLSL3,
     });
 
     this.quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.copyMat);

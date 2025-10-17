@@ -12,6 +12,7 @@ export default defineConfig({
       include: "**/*.{glsl,wgsl,vert,frag}",
       defaultExtension: "glsl",
       warnDuplicatedImports: false,
+      watch: true,
     }),
   ],
 });
