@@ -1,11 +1,10 @@
 import * as THREE from "three";
 
-import quadVert from "../glsl/quad.vert?raw";
-import throughFrag from "../glsl/through.frag?raw";
-import positionFrag from "../glsl/position.frag?raw";
+// Imports nativos de Vite con ?raw (sin plugins)
 
 import shaderParse from "../utils/shaderParse";
 import DefaultSettings from "../config/settings.config";
+import { positionFrag, quadVert, throughFrag } from "../glsl/simulationShaders";
 
 export class Simulator {
   renderer: THREE.WebGLRenderer;
@@ -43,36 +42,34 @@ export class Simulator {
 
     this.copyMat = new THREE.RawShaderMaterial({
       uniforms: {
-        resolution: {
-          type: "v2",
-          value: new THREE.Vector2(this.width, this.height),
-        },
-        texture: { type: "t", value: undefined },
+        uTexture: { value: null as unknown as THREE.Texture },
+        resolution: { value: new THREE.Vector2(width, height) },
       },
-      vertexShader: this.rawShaderPrefix + shaderParse(quadVert),
-      fragmentShader: this.rawShaderPrefix + shaderParse(throughFrag),
+      vertexShader: quadVert,
+      fragmentShader: throughFrag,
+      depthWrite: false,
       glslVersion: THREE.GLSL3,
+      depthTest: false,
+      blending: THREE.NoBlending,
+      transparent: false,
     });
 
     this.positionMat = new THREE.RawShaderMaterial({
       uniforms: {
-        resolution: {
-          type: "v2",
-          value: new THREE.Vector2(this.width, this.height),
-        },
-        texturePosition: { type: "t", value: undefined },
-        textureDefaultPosition: { type: "t", value: undefined },
-        mouse3d: { type: "v3", value: new THREE.Vector3() },
-        speed: { type: "f", value: 1 },
-        dieSpeed: { type: "f", value: 0 },
-        radius: { type: "f", value: 0 },
-        curlSize: { type: "f", value: 0 },
-        attraction: { type: "f", value: 0 },
-        time: { type: "f", value: 0 },
-        initAnimation: { type: "f", value: 0 },
+        resolution: { value: new THREE.Vector2(width, height) },
+        texturePosition: { value: null as unknown as THREE.Texture },
+        textureDefaultPosition: { value: null as unknown as THREE.Texture },
+        mouse3d: { value: new THREE.Vector3() },
+        speed: { value: DefaultSettings.speed },
+        dieSpeed: { value: DefaultSettings.dieSpeed },
+        radius: { value: DefaultSettings.radius },
+        curlSize: { value: DefaultSettings.curlSize },
+        attraction: { value: DefaultSettings.attraction },
+        time: { value: 0 },
+        initAnimation: { value: 0 },
       },
-      vertexShader: this.rawShaderPrefix + shaderParse(quadVert),
-      fragmentShader: this.rawShaderPrefix + shaderParse(positionFrag),
+      vertexShader: quadVert,
+      fragmentShader: positionFrag,
       blending: THREE.NoBlending,
       transparent: false,
       depthWrite: false,
@@ -107,16 +104,14 @@ export class Simulator {
 
   private copyTexture(input: THREE.Texture, output: THREE.WebGLRenderTarget) {
     this.quad.material = this.copyMat;
-    this.copyMat.uniforms.texture.value = input; // ← ahora existe
+    this.copyMat.uniforms.uTexture.value = input; // ← ahora existe
     this.renderer.setRenderTarget(output);
     this.renderer.render(this.scene, this.camera);
     this.renderer.setRenderTarget(null);
   }
 
   private createSeedTexture() {
-    console.log("Creating seed texture with", this.amount, "particles");
     const positions = new Float32Array(this.amount * 4);
-    console.log("positions array len", positions.length);
     for (let i = 0; i < this.amount; i++) {
       const i4 = i * 4;
       const r = (0.5 + Math.random() * 0.5) * 50;
@@ -185,6 +180,10 @@ export class Simulator {
   }
 
   update(dt: number, mouse3d: THREE.Vector3) {
+    // Legacy: desactivar autoClearColor para no borrar el RT durante ping-pong
+    const autoClearColor = this.renderer.autoClearColor;
+    this.renderer.autoClearColor = false;
+
     // Scale by dt like legacy (relative to 16.6667ms)
     const deltaRatio = dt / 16.6667;
     const u = this.positionMat.uniforms;
@@ -225,6 +224,9 @@ export class Simulator {
     this.renderer.setRenderTarget(this.rtA);
     this.renderer.render(this.scene, this.camera);
     this.renderer.setRenderTarget(null);
+
+    // Legacy: restaurar autoClearColor
+    this.renderer.autoClearColor = autoClearColor;
 
     this.positionRenderTarget = this.rtA;
     this.prevPositionRenderTarget = this.rtB;

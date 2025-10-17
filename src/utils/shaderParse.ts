@@ -5,29 +5,41 @@ import * as THREE from "three";
 // ...replacement...
 // // end_chunk_replace
 const threeChunkReplaceRegExp =
-  /\/\/\s?chunk_replace\s(.+)([\s\S]+?)\/\/\s?end_chunk_replace/gm;
+  /\/\/\s?chunk_replace\s(.+)([\d\D]+)\/\/\s?end_chunk_replace/gm;
 
 // Matches single-line Three.js shader chunk injection markers: // chunk(<name>);
 const threeChunkRegExp = /\/\/\s?chunk\(\s?(\w+)\s?\);/g;
 
 // Legacy helper: turn glslify-mangled GLOBAL_VAR_* back into the original token name
 // Example: GLOBAL_VAR_foo_12 -> foo
-const glslifyGlobalRegExp = /GLOBAL_VAR_([^_).;,\s]+)(?:_\d+)?/g;
+// eslint-disable-next-line no-useless-escape
+const glslifyGlobalRegExp = /GLOBAL_VAR_([^_\.\)\;\,\s]+)(_\d+)?/g;
 
 let chunkReplaceMap: Record<string, string> = {};
 
 function storeChunkReplaceParse(shader: string): string {
   chunkReplaceMap = {};
-  return shader.replace(threeChunkReplaceRegExp, (_a, token: string, body: string) => {
-    chunkReplaceMap[token.trim()] = body;
-    return "";
-  });
+  return shader.replace(
+    threeChunkReplaceRegExp,
+    (_a, token: string, body: string) => {
+      chunkReplaceMap[token.trim()] = body;
+      return "";
+    }
+  );
 }
 
-// En RawShaderMaterial NO usamos #include: si no hay reemplazo, devolvemos vacío.
 function threeChunkParse(shader: string): string {
   return shader.replace(threeChunkRegExp, (_a, name: string) => {
-    return chunkReplaceMap[name] ?? "";
+    // Obtener chunk estándar de THREE.ShaderChunk (si existe)
+    let str =
+      (THREE.ShaderChunk[name as keyof typeof THREE.ShaderChunk] || "") + "\n";
+
+    // Aplicar reemplazos personalizados definidos en chunk_replace blocks
+    for (const token in chunkReplaceMap) {
+      str = str.replace(token, chunkReplaceMap[token]);
+    }
+
+    return str;
   });
 }
 
