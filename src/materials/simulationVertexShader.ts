@@ -1,13 +1,8 @@
-export const simulationVertexShader = /* glsl */ `
-    varying vec2 vUv;
-
-    void main() {
-      vUv = uv;
-
-      vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-      vec4 viewPosition = viewMatrix * modelPosition;
-      vec4 projectedPosition = projectionMatrix * viewPosition;
-
-      gl_Position = projectedPosition;
-    }
+export const simulationVertexShader = `
+precision mediump float;
+attribute vec3 position;
+attribute vec2 uv;
+void main() {
+  gl_Position = vec4(position, 1.0);
+}
 `;

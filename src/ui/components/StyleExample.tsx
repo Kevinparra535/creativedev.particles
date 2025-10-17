@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import styled from "styled-components";
-import { GlobalStyles, UIOverlay, ControlPanel } from "../styles/base";
+import { GlobalStyles, ControlPanel } from "../styles/base";
 import { mixins, themes, themeUtils } from "../styles/theme";
 
 // =====================================
@@ -126,7 +126,7 @@ const StyleExample: React.FC<StyleExampleProps> = ({ children }) => {
   // Simular stats que se actualizan
   useEffect(() => {
     const interval = setInterval(() => {
-      setStats((prev) => ({
+  setStats(() => ({
         fps: Math.floor(Math.random() * 10) + 55,
         memory: Math.floor(Math.random() * 50) + 100,
         triangles: Math.floor(Math.random() * 5000) + 12000,

@@ -125,11 +125,11 @@ export const usePerformanceOptimization = (config?: Partial<PerformanceConfig>) 
 
   // Get browser memory usage (if available)
   const getMemoryUsage = useCallback(() => {
-    if ('memory' in performance) {
-      // @ts-ignore - performance.memory is not in all TypeScript definitions
-      return performance.memory.usedJSHeapSize / (1024 * 1024) // MB
+    if ("memory" in performance) {
+      // @ts-expect-error - performance.memory is not in all TypeScript definitions
+      return performance.memory.usedJSHeapSize / (1024 * 1024); // MB
     }
-    return 0
+    return 0;
   }, [])
 
   // Adaptive quality adjustment
@@ -147,9 +147,8 @@ export const usePerformanceOptimization = (config?: Partial<PerformanceConfig>) 
   }, [fullConfig])
 
   // Performance monitoring frame
-  useFrame((state) => {
+  useFrame(() => {
     const now = performance.now()
-    const deltaTime = now - lastTime.current
     frameCount.current++
 
     // Calculate FPS every 30 frames
@@ -249,7 +248,9 @@ export const usePerformanceOptimization = (config?: Partial<PerformanceConfig>) 
           if (child.geometry) child.geometry.dispose()
           if (child.material) {
             if (Array.isArray(child.material)) {
-              child.material.forEach(material => material.dispose())
+              for (const material of child.material) {
+                material.dispose()
+              }
             } else {
               child.material.dispose()
             }

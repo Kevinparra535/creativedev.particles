@@ -1,4 +1,4 @@
-import { Vector3, Color, Object3D } from 'three'
+import { Vector3, Color, Object3D, BufferGeometry } from 'three'
 
 // =====================================
 // Domain Types
@@ -117,9 +117,9 @@ export type DetailLevel = 'low' | 'medium' | 'high'
 export interface LODConfig {
   distances: [number, number] // [medium, low] thresholds
   geometries: {
-    high: THREE.BufferGeometry
-    medium: THREE.BufferGeometry
-    low: THREE.BufferGeometry
+    high: BufferGeometry
+    medium: BufferGeometry
+    low: BufferGeometry
   }
 }
 
@@ -136,7 +136,7 @@ export interface ParticleEvent {
 export interface SceneEvent {
   type: 'loaded' | 'updated' | 'error'
   sceneId?: string
-  data?: any
+  data?: unknown
   timestamp: number
 }
 

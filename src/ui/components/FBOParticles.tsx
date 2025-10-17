@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useFBO } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
@@ -52,7 +53,7 @@ const FBOParticles = () => {
     const length = size * size;
     const particles = new Float32Array(length * 3);
     for (let i = 0; i < length; i++) {
-      let i3 = i * 3;
+      const i3 = i * 3;
       particles[i3 + 0] = (i % size) / size;
       particles[i3 + 1] = i / size / size;
     }
@@ -127,6 +128,7 @@ const FBOParticles = () => {
   );
 };
 
+/* eslint-disable @typescript-eslint/no-namespace */
 declare module "@react-three/fiber" {
   namespace JSX {
     interface IntrinsicElements {

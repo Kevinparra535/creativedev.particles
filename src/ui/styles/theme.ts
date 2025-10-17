@@ -216,20 +216,20 @@ export const themeUtils = {
     const theme = themes[themeName];
     const root = document.documentElement;
 
-    Object.entries(theme).forEach(([property, value]) => {
+    for (const [property, value] of Object.entries(theme)) {
       root.style.setProperty(property, value);
-    });
+    }
   },
 
   // Detectar capacidades del dispositivo
   getDeviceCapabilities: () => ({
     isHighRefreshRate:
-      window.screen && (window.screen as any).refreshRate >= 120,
+      window.screen && (window.screen as unknown as { refreshRate?: number }).refreshRate! >= 120,
     supportsWebGL2: !!document.createElement("canvas").getContext("webgl2"),
-    isTouchDevice: "ontouchstart" in window,
-    prefersReducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)")
+    isTouchDevice: "ontouchstart" in globalThis,
+    prefersReducedMotion: globalThis.matchMedia("(prefers-reduced-motion: reduce)")
       .matches,
-    devicePixelRatio: window.devicePixelRatio || 1,
+    devicePixelRatio: globalThis.devicePixelRatio || 1,
   }),
 
   // Optimizar performance basado en dispositivo
