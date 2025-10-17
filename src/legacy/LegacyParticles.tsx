@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { createPortal, useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import settings from "../config/settings.config";
 import Simulator from "./Simulator";
 
@@ -139,6 +139,7 @@ const LegacyParticles = () => {
       }),
     []
   );
+
   const positionMat = useMemo(
     () =>
       new THREE.ShaderMaterial({
@@ -190,9 +191,25 @@ const LegacyParticles = () => {
     []
   );
   const pointsRef = useRef<THREE.Points>(null!);
+  const initAnimRef = useRef(0);
+
+  // Recreate simulator on amount change and dispose on unmount
+  useEffect(() => {
+    simulatorRef.current!.recreate(W, H);
+    // reset intro animation to replay easing if desired
+    initAnimRef.current = 0;
+    return () => {
+      simulatorRef.current?.dispose();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [W, H]);
 
   useFrame((state) => {
-  // const t = state.clock.elapsedTime;
+    // Advance intro animation like legacy: init += dt(ms)*0.00025 → dt(s)*0.25
+    initAnimRef.current = Math.min(
+      1,
+      initAnimRef.current + state.clock.getDelta() * 0.25
+    );
     // Seed already handled by Simulator on construct.
     // Mouse follow
     const normal = new THREE.Vector3();
@@ -207,7 +224,7 @@ const LegacyParticles = () => {
       (positionMat.uniforms.mouse3d.value as THREE.Vector3).copy(hit);
     }
     // Update simulator (dt in ms) with mouse3d at the camera-aligned plane
-    simulatorRef.current!.initAnimation = 1; // allow immediate motion; wire if needed
+    simulatorRef.current!.initAnimation = initAnimRef.current;
     simulatorRef.current!.update(
       state.clock.getDelta() * 1000,
       positionMat.uniforms.mouse3d.value as THREE.Vector3

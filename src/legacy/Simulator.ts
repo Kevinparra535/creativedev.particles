@@ -142,6 +142,52 @@ export class Simulator {
     return texture;
   }
 
+  recreate(width: number, height: number) {
+    // Dispose old RTs
+    this.rtA.dispose();
+    this.rtB.dispose();
+
+    // Update dims
+    this.width = width;
+    this.height = height;
+    this.amount = width * height;
+
+    // Update uniform resolution
+    (this.positionMat.uniforms.uResolution.value as THREE.Vector2).set(
+      width,
+      height
+    );
+
+    // Create new RTs
+    this.rtA = new THREE.WebGLRenderTarget(width, height, {
+      wrapS: THREE.ClampToEdgeWrapping,
+      wrapT: THREE.ClampToEdgeWrapping,
+      minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
+      format: THREE.RGBAFormat,
+      type: THREE.FloatType,
+      depthBuffer: false,
+      stencilBuffer: false,
+    });
+    this.rtB = this.rtA.clone();
+
+    // New seed
+    this.defaultSeed = this.createSeedTexture();
+    this.copyTexture(this.defaultSeed, this.rtA);
+    this.copyTexture(this.rtA.texture, this.rtB);
+
+    this.positionRenderTarget = this.rtA;
+    this.prevPositionRenderTarget = this.rtB;
+  }
+
+  dispose() {
+    this.rtA.dispose();
+    this.rtB.dispose();
+    this.copyMat.dispose();
+    this.positionMat.dispose();
+    this.defaultSeed.dispose();
+  }
+
   update(dt: number, mouse3d: THREE.Vector3) {
     if (!(settings.speed || settings.dieSpeed)) {
       return;
