@@ -28,7 +28,7 @@ const R3FCanva = () => {
           // aspect={1}
           // near={10}
           // far={3000}
-          position={[0, 0, 5]}
+          position={[300, 60, 300]}
           zoom={100}
         />
 

@@ -19,6 +19,19 @@ export type PostFXProps = {
   smaa?: boolean;
   temporalAccumulation?: boolean;
   trailStrength?: number; // 0..1 (0=no trail, 1=long trail)
+  // Bloom tuning
+  bloomIntensity?: number;
+  bloomThreshold?: number;
+  bloomSmoothing?: number;
+  bloomHeight?: number;
+  // DOF tuning
+  dofFocusDistance?: number;
+  dofFocalLength?: number;
+  dofBokehScale?: number;
+  dofHeight?: number;
+  // Vignette tuning
+  vignetteOffset?: number;
+  vignetteDarkness?: number;
 };
 
 // Post-processing stack inspired by The-Spirit: SMAA → DOF → Bloom → Noise → Vignette
@@ -32,6 +45,16 @@ const PostFX = ({
   smaa = true,
   temporalAccumulation = false,
   trailStrength = 0.6,
+  bloomIntensity = 0.3,
+  bloomThreshold = 0,
+  bloomSmoothing = 0.9,
+  bloomHeight = 300,
+  dofFocusDistance = 0,
+  dofFocalLength = 50,
+  dofBokehScale = 1,
+  dofHeight = 480,
+  vignetteOffset = 0.3,
+  vignetteDarkness = 1.2,
 }: PostFXProps) => {
   const children = useMemo(() => {
     const nodes: React.ReactElement[] = [];
@@ -40,19 +63,20 @@ const PostFX = ({
       nodes.push(
         <DepthOfField
           key="dof"
-          focusDistance={0}
-          focalLength={50}
-          bokehScale={1}
-          height={480}
+          focusDistance={dofFocusDistance}
+          focalLength={dofFocalLength}
+          bokehScale={dofBokehScale}
+          height={dofHeight}
         />
       );
     if (bloom)
       nodes.push(
         <Bloom
           key="bloom"
-          luminanceThreshold={0}
-          luminanceSmoothing={0.9}
-          height={300}
+          luminanceThreshold={bloomThreshold}
+          luminanceSmoothing={bloomSmoothing}
+          height={bloomHeight}
+          intensity={bloomIntensity}
         />
       );
     if (noise)
@@ -66,10 +90,31 @@ const PostFX = ({
       );
     if (vignette)
       nodes.push(
-        <Vignette key="vignette" eskil={false} offset={0.1} darkness={1.1} />
+        <Vignette
+          key="vignette"
+          eskil={false}
+          offset={vignetteOffset}
+          darkness={vignetteDarkness}
+        />
       );
     return nodes;
-  }, [smaa, dof, bloom, noise, vignette]);
+  }, [
+    smaa,
+    dof,
+    bloom,
+    noise,
+    vignette,
+    dofFocusDistance,
+    dofFocalLength,
+    dofBokehScale,
+    dofHeight,
+    bloomThreshold,
+    bloomSmoothing,
+    bloomHeight,
+    bloomIntensity,
+    vignetteOffset,
+    vignetteDarkness,
+  ]);
 
   return enabled ? (
     <>
