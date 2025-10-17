@@ -1,6 +1,7 @@
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, OrthographicCamera } from "@react-three/drei";
+import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import Scene1 from "../scenes/lowQuality/Scene1";
+import EffectsController from "./controls/EffectsController";
 
 // Componente principal con controles de color
 const R3FCanva = () => {
@@ -22,12 +23,12 @@ const R3FCanva = () => {
           intensity={Math.PI}
         />
 
-        <OrthographicCamera
+        <PerspectiveCamera
           makeDefault
-          // fov={45}
-          // aspect={1}
-          // near={10}
-          // far={3000}
+          fov={45}
+          aspect={1}
+          near={10}
+          far={3000}
           position={[300, 60, 300]}
           zoom={100}
         />
@@ -58,6 +59,7 @@ const R3FCanva = () => {
         />
 
         <Scene1 />
+        <EffectsController />
       </Canvas>
     </div>
   );
