@@ -1,11 +1,12 @@
-import Controls from "./components/controls/Controls";
+// import Controls from "./components/controls/Controls";
 import R3FCanva from "./components/R3FCanva";
 import { GlobalStyles, BaseContainer } from "./styles/base";
 
 const App = () => {
   return (
     <>
-      <Controls />
+      {/* Legacy GUI now handled by LegacyGUI in Scene1 */}
+      {/* <Controls /> */}
 
       {/* Aplica estilos globales al HTML y #root */}
       <GlobalStyles />

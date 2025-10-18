@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
 import Scene1 from "../scenes/lowQuality/Scene1";
+import LegacyPostProcessing from "./LegacyPostProcessing";
 import DefaultSettings from "../../config/settings.config";
 
 // Componente principal con controles de color
@@ -23,12 +24,7 @@ const R3FCanva = () => {
           gl.shadowMap.type = THREE.PCFSoftShadowMap;
         }}
       >
-        {/* Background and fog as legacy */}
-        {/* Background color */}
-        {/* @ts-ignore three-stdlib intrinsic */}
         <color attach="background" args={[DefaultSettings.bgColor]} />
-        {/* FogExp2 with density 0.001 */}
-        {/* @ts-ignore three-stdlib intrinsic */}
         <fogExp2 attach="fog" args={[DefaultSettings.bgColor, 0.001]} />
 
         <PerspectiveCamera
@@ -41,10 +37,8 @@ const R3FCanva = () => {
 
         <Scene1 />
 
-        {/* Legacy PostProcessing System */}
-        {/* {(DefaultSettings.fxaa ||
-          DefaultSettings.bloom ||
-          DefaultSettings.motionBlur) && <LegacyPostProcessing />} */}
+        {/* Legacy PostProcessing System - Always enabled for GUI controls */}
+        <LegacyPostProcessing />
       </Canvas>
     </div>
   );
