@@ -1,8 +1,7 @@
 import glsl from "glslify";
 import * as THREE from "three";
 
-// Complete FBO helper inspired by legacy fboHelper with all functionality
-
+// === Tipos (igual que tu versión) ===
 export type FBOOptions = Partial<
   Pick<
     THREE.RenderTargetOptions,
@@ -23,181 +22,173 @@ export interface ColorState {
   clearAlpha: number;
 }
 
-// Global state (legacy pattern)
+// === Estado global (legacy pattern) ===
 let _renderer: THREE.WebGLRenderer | null = null;
 let _scene: THREE.Scene | null = null;
 let _camera: THREE.Camera | null = null;
 let _mesh: THREE.Mesh | null = null;
 let _copyMaterial: THREE.RawShaderMaterial | null = null;
 
-// Legacy-compatible global variables that get exported
-let _rawShaderPrefix: string = "";
-let _vertexShader: string = "";
+// Mantengo estas dos por compatibilidad (aunque ya no se usan para prefijar)
+let _rawShaderPrefix = "";
+let _vertexShader = "";
 
-// Legacy exports (mutable globals like in legacy)
-export let rawShaderPrefix: string = "";
-export let vertexShader: string = "";
-export let copyMaterial = (): THREE.RawShaderMaterial | null => _copyMaterial;
+// === Exports legacy (mutables) ===
+export let rawShaderPrefix = "";
+export let vertexShader = "";
+export let copyMaterial: THREE.RawShaderMaterial | null = null;
 
 /**
- * Initialize FBO helper with renderer (legacy pattern)
- * @param renderer WebGL renderer instance
+ * Init (legacy signature)
  */
 export function init(renderer: THREE.WebGLRenderer): void {
-  // Ensure it won't be initialized twice (exact legacy check)
   if (_renderer) return;
 
   _renderer = renderer;
 
+  // En GLSL3 ya no necesitamos prefijo, pero lo dejamos como valor válido por compatibilidad
+  _rawShaderPrefix = rawShaderPrefix = "precision highp float;\n";
+
   _scene = new THREE.Scene();
   _camera = new THREE.Camera();
-  _camera.position.z = 1;
+  (_camera.position as any).z = 1;
 
-  // Create vertex shader with prefix like legacy (using glslify like legacy)
-  _vertexShader = glsl`
-        precision highp float;
+  // === Shaders GLSL3 (sin #version: Three la inyecta al compilar con glslVersion: THREE.GLSL3) ===
+  const COPY_VERT_GLSL3 = glsl`
+    precision highp float;
 
-        in vec3 position;
-        in vec2 uv;
+    in vec3 position;
+    in vec2 uv;
+    out vec2 v_uv;
 
-        out vec2 v_uv;
-
-        void main() {
-          v_uv = uv;
-          gl_Position = vec4(position, 1.0);
-        }
+    void main() {
+      v_uv = uv;
+      gl_Position = vec4(position, 1.0);
+    }
   `;
 
-  // Create fragment shader with prefix like legacy (using glslify like legacy)
-  const fragmentShader = glsl`
-      precision highp float;
+  const COPY_FRAG_GLSL3 = glsl`
+    // FRAGMENT GLSL3 — composite líneas (reemplaza el que muestra el log)
+    precision highp float;
 
-      uniform sampler2D u_texture;
-      in vec2 v_uv;
+    uniform sampler2D u_texture;
+    uniform sampler2D u_linesTexture;
+    uniform float u_lineAlphaMultiplier;
 
-      out vec4 outColor;
+    in vec2 v_uv;
+    out vec4 outColor;
 
-      void main() {
-        outColor = texture(u_texture, v_uv);
-      }
-
+    void main() {
+      vec3 base  = texture(u_texture, v_uv).rgb;
+      vec4 lines = texture(u_linesTexture, v_uv);
+      vec3 color = (base + lines.rgb * u_lineAlphaMultiplier)
+                / (lines.a * u_lineAlphaMultiplier + 1.0);
+      outColor = vec4(color, 1.0);
+    }
   `;
 
-  _copyMaterial = new THREE.RawShaderMaterial({
+  // Guardamos para getVertexShader() / legacy
+  _vertexShader = vertexShader = COPY_VERT_GLSL3;
+
+  _copyMaterial = copyMaterial = new THREE.RawShaderMaterial({
     uniforms: {
       u_texture: { value: null as unknown as THREE.Texture },
     },
-    vertexShader: _vertexShader,
-    fragmentShader: fragmentShader,
-    glslVersion: THREE.GLSL3,
+    vertexShader: COPY_VERT_GLSL3,
+    fragmentShader: COPY_FRAG_GLSL3,
+    glslVersion: THREE.GLSL3, // 👈 importante para GLSL3
+    depthWrite: false,
+    depthTest: false,
+    blending: THREE.NoBlending,
+    transparent: false,
   });
-
-  // Export copyMaterial like legacy
-  copyMaterial = _copyMaterial;
 
   _mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _copyMaterial);
   _scene.add(_mesh);
+
+  // (Opcional) Aviso si no es WebGL2:
+  if (!_renderer.capabilities.isWebGL2) {
+    console.warn(
+      "[FBO Helper] WebGL2 no detectado: GLSL3 requerirá un contexto webgl2."
+    );
+  }
 }
 
 /**
- * Copy texture from input to output render target (exact legacy signature)
- * @param inputTexture Source texture
- * @param ouputTexture Target render target (legacy typo preserved for compatibility)
+ * Copia de textura (legacy signature)
  */
 export function copy(
   inputTexture: THREE.Texture,
   ouputTexture?: THREE.WebGLRenderTarget
 ): void {
-  if (!_mesh || !_copyMaterial) return;
-
-  _mesh.material = _copyMaterial;
-  _copyMaterial.uniforms.u_texture.value = inputTexture;
+  if (!_renderer || !_scene || !_camera || !copyMaterial || !_mesh) return;
+  _mesh.material = copyMaterial;
+  copyMaterial.uniforms.u_texture.value = inputTexture;
 
   if (ouputTexture) {
-    _renderer!.setRenderTarget(ouputTexture);
-    _renderer!.render(_scene!, _camera!);
-    _renderer!.setRenderTarget(null);
+    _renderer.setRenderTarget(ouputTexture);
+    _renderer.render(_scene, _camera);
+    _renderer.setRenderTarget(null);
   } else {
-    _renderer!.render(_scene!, _camera!);
+    _renderer.render(_scene, _camera);
   }
 }
 
 /**
- * Render with custom material to render target (exact legacy signature)
- * @param material Custom material to use
- * @param renderTarget Target render target (optional, renders to screen if null)
+ * Render con material custom (legacy signature)
  */
 export function render(
   material: THREE.Material,
   renderTarget?: THREE.WebGLRenderTarget
 ): void {
-  if (!_mesh) return;
-
+  if (!_renderer || !_scene || !_camera || !_mesh) return;
   _mesh.material = material;
 
   if (renderTarget) {
-    _renderer!.setRenderTarget(renderTarget);
-    _renderer!.render(_scene!, _camera!);
-    _renderer!.setRenderTarget(null);
+    _renderer.setRenderTarget(renderTarget);
+    _renderer.render(_scene, _camera);
+    _renderer.setRenderTarget(null);
   } else {
-    _renderer!.render(_scene!, _camera!);
+    _renderer.render(_scene, _camera);
   }
 }
 
 /**
- * Get current renderer color state (exact legacy implementation)
- * @returns Color state object
+ * Estado de color (legacy)
  */
 export function getColorState(): ColorState {
+  const color = new THREE.Color();
   return {
     autoClearColor: _renderer!.autoClearColor,
-    clearColor: _renderer!.getClearColor(new THREE.Color()).getHex(),
+    clearColor: _renderer!.getClearColor(color).getHex(),
     clearAlpha: _renderer!.getClearAlpha(),
   };
 }
 
 /**
- * Set renderer color state (exact legacy implementation)
- * @param state Color state to apply
+ * Set estado de color (legacy)
  */
 export function setColorState(state: ColorState): void {
-  _renderer!.setClearColor(state.clearColor, state.clearAlpha);
-  _renderer!.autoClearColor = state.autoClearColor;
+  if (!_renderer) return;
+  _renderer.setClearColor(state.clearColor, state.clearAlpha);
+  _renderer.autoClearColor = state.autoClearColor;
 }
 
-/**
- * Get raw shader prefix (precision directive)
- * @returns Shader prefix string
- */
+/** Legacy getters */
 export function getRawShaderPrefix(): string {
   return _rawShaderPrefix;
 }
 
-/**
- * Get copy material vertex shader
- * @returns Vertex shader source
- */
 export function getVertexShader(): string {
   return _vertexShader;
 }
 
-/**
- * Get copy material instance
- * @returns Copy material
- */
 export function getCopyMaterial(): THREE.RawShaderMaterial | null {
   return _copyMaterial;
 }
 
 /**
- * Create render target with legacy-compatible signature
- * @param width Width (default: 1)
- * @param height Height (default: 1)
- * @param format Format (default: RGBFormat)
- * @param type Type (default: UnsignedByteType)
- * @param minFilter Min filter (default: LinearFilter)
- * @param magFilter Mag filter (default: LinearFilter)
- * @returns WebGLRenderTarget
+ * Crear RT (legacy signature)
  */
 export function createRenderTarget(
   width?: number,
@@ -208,26 +199,19 @@ export function createRenderTarget(
   magFilter?: THREE.MagnificationTextureFilter
 ): THREE.WebGLRenderTarget {
   const renderTarget = new THREE.WebGLRenderTarget(width || 1, height || 1, {
-    format: format || THREE.RGBFormat,
-    type: type || THREE.UnsignedByteType,
-    minFilter: minFilter || THREE.LinearFilter,
-    magFilter: magFilter || THREE.LinearFilter,
+    format: format ?? THREE.RGBFormat,
+    type: type ?? THREE.UnsignedByteType,
+    minFilter: minFilter ?? THREE.LinearFilter,
+    magFilter: magFilter ?? THREE.LinearFilter,
     // depthBuffer: false,
-    // stencilBuffer: false
+    // stencilBuffer: false,
   });
-
-  // Exact legacy behavior: disable mipmap generation
   renderTarget.texture.generateMipmaps = false;
-
   return renderTarget;
 }
 
 /**
- * Create render target with modern options interface
- * @param width Width
- * @param height Height
- * @param options Render target options
- * @returns WebGLRenderTarget
+ * Crear RT con opciones modernas
  */
 export function createRenderTargetWithOptions(
   width: number,
@@ -245,9 +229,14 @@ export function createRenderTargetWithOptions(
     stencilBuffer: false,
     ...options,
   });
+  // disable mipmaps por defecto (como legacy)
+  rt.texture.generateMipmaps = false;
   return rt;
 }
 
+/**
+ * Ping-pong helper
+ */
 export function createPingPong(
   width: number,
   height: number,

@@ -1,348 +1,293 @@
 import * as THREE from "three";
 import * as fboHelper from "../utils/fboHelper";
-import Effect from "./Effect";
 
 /**
- * Legacy-compatible Effect Composer for postprocessing pipeline
+ * Legacy-compatible Effect Composer - exact replication of effectComposer.js
  */
-class EffectComposer {
-  queue: Effect[] = [];
-  fromRenderTarget?: THREE.WebGLRenderTarget;
-  toRenderTarget?: THREE.WebGLRenderTarget;
-  resolution: THREE.Vector2 = new THREE.Vector2();
-  renderer?: THREE.WebGLRenderer;
-  scene?: THREE.Scene;
-  camera?: THREE.Camera;
 
-  private renderTargetLists: Record<string, THREE.WebGLRenderTarget[]> = {};
-  private renderTargetCounts: Record<string, number> = {};
-  private renderTargetDefaultState = {
-    depthBuffer: false,
-    texture: {
-      generateMipmaps: false,
-    },
-  };
+// Global exports like legacy (mutable variables)
+export let resolution: THREE.Vector2;
+export let fromRenderTarget: THREE.WebGLRenderTarget;
+export let toRenderTarget: THREE.WebGLRenderTarget;
+export let queue: any[] = [];
 
-  /**
-   * Initialize effect composer
-   * @param renderer WebGL renderer
-   * @param scene Scene to render
-   * @param camera Camera to use
-   */
-  init(
-    renderer: THREE.WebGLRenderer,
-    scene: THREE.Scene,
-    camera: THREE.Camera
-  ) {
-    this.fromRenderTarget = fboHelper.createRenderTarget();
-    this.toRenderTarget = fboHelper.createRenderTarget();
+// Private state
+let _renderTargetLists: Record<string, THREE.WebGLRenderTarget[]> = {};
+let _renderTargetCounts: Record<string, number> = {};
+const _renderTargetDefaultState = {
+  depthBuffer: false,
+  texture: {
+    generateMipmaps: false,
+  },
+};
 
-    this.renderer = renderer;
-    this.scene = scene;
-    this.camera = camera;
+export let renderer: THREE.WebGLRenderer;
+export let scene: THREE.Scene;
+export let camera: THREE.Camera;
+
+/**
+ * Initialize effect composer (exact legacy signature)
+ * @param rendererInstance WebGL renderer
+ * @param sceneInstance Scene to render
+ * @param cameraInstance Camera to use
+ */
+export function init(
+  rendererInstance: THREE.WebGLRenderer,
+  sceneInstance: THREE.Scene,
+  cameraInstance: THREE.Camera
+): void {
+  fromRenderTarget = fboHelper.createRenderTarget();
+  toRenderTarget = fboHelper.createRenderTarget();
+
+  resolution = new THREE.Vector2();
+
+  renderer = rendererInstance;
+  scene = sceneInstance;
+  camera = cameraInstance;
+}
+
+/**
+ * Resize all render targets and effects (exact legacy signature)
+ * @param width New width
+ * @param height New height
+ */
+export function resize(width: number, height: number): void {
+  resolution.set(width, height);
+
+  fromRenderTarget.setSize(width, height);
+  toRenderTarget.setSize(width, height);
+
+  // Legacy behavior: update camera and renderer
+  if ((camera as any).aspect !== undefined) {
+    (camera as THREE.PerspectiveCamera).aspect = width / height;
+    (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
   }
+  renderer.setSize(width, height);
 
-  /**
-   * Resize all render targets and effects
-   * @param width New width
-   * @param height New height
-   */
-  resize(width: number, height: number) {
-    this.resolution.set(width, height);
-
-    if (this.fromRenderTarget) {
-      this.fromRenderTarget.setSize(width, height);
+  // Resize all effects in queue
+  for (let i = 0, len = queue.length; i < len; i++) {
+    if (queue[i].resize) {
+      queue[i].resize(width, height);
     }
-    if (this.toRenderTarget) {
-      this.toRenderTarget.setSize(width, height);
-    }
-
-    // Legacy behavior: update camera and renderer
-    if (this.camera && "aspect" in this.camera) {
-      (this.camera as THREE.PerspectiveCamera).aspect = width / height;
-      (this.camera as THREE.PerspectiveCamera).updateProjectionMatrix();
-    }
-    if (this.renderer) {
-      this.renderer.setSize(width, height);
-    }
-
-    // Resize all render targets in pools
-    Object.values(this.renderTargetLists).forEach((list) => {
-      list.forEach((rt) => rt.setSize(width, height));
-    });
-
-    // Resize all effects
-    this.queue.forEach((effect) => effect.resize(width, height));
-  }
-
-  /**
-   * Render the complete postprocessing queue
-   * @param _dt Delta time (not used but matches legacy signature)
-   */
-  renderQueue(_dt: number) {
-    if (!this.renderer || !this.scene || !this.camera) return;
-
-    // Filter enabled effects like legacy
-    const renderableQueue = this.queue.filter((effect) => effect.enabled);
-
-    if (renderableQueue.length > 0) {
-      // Render scene to toRenderTarget with depth/stencil like legacy
-      if (this.toRenderTarget) {
-        this.toRenderTarget.depthBuffer = true;
-        this.toRenderTarget.stencilBuffer = true;
-        this.renderer.setRenderTarget(this.toRenderTarget);
-        this.renderer.render(this.scene, this.camera);
-        this.renderer.setRenderTarget(null);
-        // Reset depth/stencil for effects
-        // this.toRenderTarget.depthBuffer = false;
-        // this.toRenderTarget.stencilBuffer = false;
-      }
-
-      // Swap to start with scene in fromRenderTarget
-      this.swapRenderTarget();
-
-      // Process each enabled effect
-      for (let i = 0; i < renderableQueue.length; i++) {
-        const effect = renderableQueue[i];
-        const isLast = i === renderableQueue.length - 1;
-
-        // Set effect's input texture
-        if (effect.uniforms.u_texture && this.fromRenderTarget) {
-          effect.uniforms.u_texture.value = this.fromRenderTarget.texture;
-        }
-
-        // Render effect with legacy-style flow
-        if (isLast) {
-          // Last effect renders to screen
-          if (effect.material) {
-            fboHelper.render(effect.material);
-          }
-        } else {
-          // Intermediate effects render to toRenderTarget, then swap
-          if (effect.material && this.toRenderTarget) {
-            fboHelper.render(effect.material, this.toRenderTarget);
-            this.swapRenderTarget();
-          }
-        }
-      }
-    } else {
-      // No effects, render scene directly to screen
-      this.renderer.render(this.scene, this.camera);
-    }
-  }
-
-  /**
-   * Render with material to render target (legacy-compatible)
-   * @param material Material to render with
-   * @param toScreen Whether to render to screen
-   * @returns fromRenderTarget after swap
-   */
-  render(
-    material: THREE.Material,
-    toScreen?: boolean
-  ): THREE.WebGLRenderTarget | undefined {
-    if (toScreen) {
-      fboHelper.render(material);
-    } else {
-      fboHelper.render(material, this.toRenderTarget);
-      this.swapRenderTarget();
-    }
-    return this.fromRenderTarget;
-  }
-
-  /**
-   * Render scene to render target (legacy-compatible)
-   * @param renderTarget Target render target (optional)
-   * @param scene Scene to render (optional, uses default)
-   * @param camera Camera to use (optional, uses default)
-   */
-  renderScene(
-    renderTarget?: THREE.WebGLRenderTarget,
-    scene?: THREE.Scene,
-    camera?: THREE.Camera
-  ) {
-    const sceneToRender = scene || this.scene;
-    const cameraToRender = camera || this.camera;
-
-    if (!this.renderer || !sceneToRender || !cameraToRender) return;
-
-    if (renderTarget) {
-      this.renderer.setRenderTarget(renderTarget);
-      this.renderer.render(sceneToRender, cameraToRender);
-      this.renderer.setRenderTarget(null);
-    } else {
-      this.renderer.render(sceneToRender, cameraToRender);
-    }
-  }
-
-  /**
-   * Swap fromRenderTarget and toRenderTarget
-   */
-  swapRenderTarget() {
-    const temp = this.fromRenderTarget;
-    this.fromRenderTarget = this.toRenderTarget;
-    this.toRenderTarget = temp;
-  }
-
-  /**
-   * Get render target from pool (legacy-compatible signature)
-   * @param bitShift Bit shift for resolution scaling (0 = full res, 1 = half res, etc.)
-   * @param isRGBA Whether to use RGBA format (vs RGB)
-   * @returns Render target from pool
-   */
-  getRenderTarget(
-    bitShift: number = 0,
-    isRGBA: boolean = false
-  ): THREE.WebGLRenderTarget {
-    const width = this.resolution.x >> bitShift;
-    const height = this.resolution.y >> bitShift;
-    const id = `${bitShift}_${isRGBA ? 1 : 0}`;
-
-    let list = this.renderTargetLists[id];
-    if (!list) {
-      list = this.renderTargetLists[id] = [];
-      this.renderTargetCounts[id] = 0;
-    }
-
-    let renderTarget: THREE.WebGLRenderTarget;
-
-    if (list.length > 0) {
-      // Reuse existing render target from pool
-      renderTarget = list.pop()!;
-      // Apply default state like legacy
-      Object.assign(renderTarget, this.renderTargetDefaultState);
-    } else {
-      // Create new render target
-      const format = isRGBA ? THREE.RGBAFormat : THREE.RGBFormat;
-      renderTarget = fboHelper.createRenderTarget(width, height, format);
-      (renderTarget as any)._listId = id;
-    }
-
-    // Track usage count
-    this.renderTargetCounts[id] = (this.renderTargetCounts[id] || 0) + 1;
-
-    // Resize if needed
-    if (renderTarget.width !== width || renderTarget.height !== height) {
-      renderTarget.setSize(width, height);
-    }
-
-    return renderTarget;
-  }
-
-  /**
-   * Release render target back to pool (legacy-compatible)
-   * @param renderTargets Render targets to release
-   */
-  releaseRenderTarget(...renderTargets: THREE.WebGLRenderTarget[]) {
-    for (const renderTarget of renderTargets) {
-      const id = (renderTarget as any)._listId;
-      if (!id) continue;
-
-      const list = this.renderTargetLists[id];
-      if (!list) continue;
-
-      this.renderTargetCounts[id]--;
-
-      // Check if already in pool to avoid duplicates
-      if (!list.includes(renderTarget)) {
-        list.push(renderTarget);
-      }
-    }
-  }
-
-  /**
-   * Modern get render target method (for compatibility)
-   * @param key Pool key
-   * @param index Index in pool
-   * @returns Render target
-   */
-  getRenderTargetModern(
-    key: string,
-    index: number = 0
-  ): THREE.WebGLRenderTarget {
-    if (!this.renderTargetLists[key]) {
-      this.renderTargetLists[key] = [];
-      this.renderTargetCounts[key] = 0;
-    }
-
-    const list = this.renderTargetLists[key];
-
-    if (index >= list.length) {
-      // Create new render target
-      const rt = fboHelper.createRenderTarget(
-        this.resolution.x || 1,
-        this.resolution.y || 1
-      );
-
-      // Apply default state
-      rt.depthBuffer = this.renderTargetDefaultState.depthBuffer;
-      rt.texture.generateMipmaps =
-        this.renderTargetDefaultState.texture.generateMipmaps;
-
-      list.push(rt);
-    }
-
-    this.renderTargetCounts[key] = Math.max(
-      this.renderTargetCounts[key],
-      index + 1
-    );
-    return list[index];
-  }
-
-  /**
-   * Release render target back to pool (modern version)
-   * @param key Pool key
-   */
-  releaseRenderTargetModern(key: string) {
-    this.renderTargetCounts[key] = 0;
-  }
-
-  /**
-   * Add effect to queue
-   * @param effect Effect to add
-   */
-  addEffect(effect: Effect) {
-    this.queue.push(effect);
-  }
-
-  /**
-   * Remove effect from queue
-   * @param effect Effect to remove
-   */
-  removeEffect(effect: Effect) {
-    const index = this.queue.indexOf(effect);
-    if (index !== -1) {
-      this.queue.splice(index, 1);
-    }
-  }
-
-  /**
-   * Clear all effects
-   */
-  clear() {
-    this.queue.length = 0;
-  }
-
-  /**
-   * Dispose all resources
-   */
-  dispose() {
-    // Dispose render targets
-    this.fromRenderTarget?.dispose();
-    this.toRenderTarget?.dispose();
-
-    // Dispose pooled render targets
-    Object.values(this.renderTargetLists).forEach((list) => {
-      list.forEach((rt) => rt.dispose());
-    });
-
-    // Dispose effects
-    this.queue.forEach((effect) => effect.dispose());
-
-    this.clear();
   }
 }
 
-// Create singleton instance like legacy
-const effectComposer = new EffectComposer();
+/**
+ * Filter function for enabled effects (exact legacy)
+ * @param effect Effect to check
+ * @returns Whether effect is enabled
+ */
+function _filterQueue(effect: any): boolean {
+  return effect.enabled;
+}
+
+/**
+ * Render the complete postprocessing queue (exact legacy signature)
+ * @param dt Delta time
+ */
+export function renderQueue(dt: number): void {
+  const renderableQueue = queue.filter(_filterQueue);
+
+  if (renderableQueue.length) {
+    // Render scene to toRenderTarget with depth/stencil like legacy
+    toRenderTarget.depthBuffer = true;
+    toRenderTarget.stencilBuffer = true;
+    
+    // Legacy used direct render with target
+    renderer.setRenderTarget(toRenderTarget);
+    renderer.render(scene, camera);
+    renderer.setRenderTarget(null);
+    
+    // Legacy commented these but kept behavior
+    // toRenderTarget.depthBuffer = false;
+    // toRenderTarget.stencilBuffer = false;
+    
+    swapRenderTarget();
+
+    // Process each effect exactly like legacy
+    for (let i = 0, len = renderableQueue.length; i < len; i++) {
+      const effect = renderableQueue[i];
+      const isLast = i === len - 1;
+      
+      // Call effect.render with exact legacy signature
+      effect.render(dt, fromRenderTarget, isLast);
+    }
+  } else {
+    // No effects, render scene directly to screen
+    renderer.render(scene, camera);
+  }
+}
+
+/**
+ * Render scene to render target (exact legacy signature)
+ * @param renderTarget Target render target
+ * @param sceneInstance Scene (optional, uses global)
+ * @param cameraInstance Camera (optional, uses global)
+ */
+export function renderScene(
+  renderTarget?: THREE.WebGLRenderTarget,
+  sceneInstance?: THREE.Scene,
+  cameraInstance?: THREE.Camera
+): void {
+  const targetScene = sceneInstance || scene;
+  const targetCamera = cameraInstance || camera;
+  
+  if (renderTarget) {
+    renderer.setRenderTarget(renderTarget);
+    renderer.render(targetScene, targetCamera);
+    renderer.setRenderTarget(null);
+  } else {
+    renderer.render(targetScene, targetCamera);
+  }
+}
+
+/**
+ * Render with material to render target (exact legacy signature)
+ * @param material Material to render with
+ * @param toScreen Whether to render to screen (undefined = to render target)
+ * @returns fromRenderTarget after swap
+ */
+export function render(
+  material: THREE.Material,
+  toScreen?: boolean
+): THREE.WebGLRenderTarget {
+  fboHelper.render(material, toScreen ? undefined : toRenderTarget);
+  swapRenderTarget();
+  return fromRenderTarget;
+}
+
+/**
+ * Swap render targets (exact legacy implementation)
+ */
+export function swapRenderTarget(): void {
+  const tmp = toRenderTarget;
+  toRenderTarget = fromRenderTarget;
+  fromRenderTarget = tmp;
+}
+
+/**
+ * Get render target from pool (exact legacy signature)
+ * @param bitShift Bit shift for resolution scaling
+ * @param isRGBA Whether to use RGBA format
+ * @returns Render target from pool
+ */
+export function getRenderTarget(
+  bitShift: number = 0,
+  isRGBA: boolean = false
+): THREE.WebGLRenderTarget {
+  const width = resolution.x >> bitShift;
+  const height = resolution.y >> bitShift;
+  const isRGBANum = +(isRGBA || false);
+  const id = bitShift + '_' + isRGBANum;
+  const list = _getRenderTargetList(id);
+  
+  let renderTarget: THREE.WebGLRenderTarget;
+  
+  if (list.length) {
+    renderTarget = list.pop()!;
+    Object.assign(renderTarget, _renderTargetDefaultState);
+  } else {
+    renderTarget = fboHelper.createRenderTarget(
+      width, 
+      height, 
+      isRGBA ? THREE.RGBAFormat : THREE.RGBFormat
+    );
+    (renderTarget as any)._listId = id;
+    _renderTargetCounts[id] = _renderTargetCounts[id] || 0;
+  }
+  
+  _renderTargetCounts[id]++;
+
+  if ((renderTarget.width !== width) || (renderTarget.height !== height)) {
+    renderTarget.setSize(width, height);
+  }
+
+  return renderTarget;
+}
+
+/**
+ * Release render target back to pool (exact legacy signature)
+ * @param renderTargets Render targets to release
+ */
+export function releaseRenderTarget(
+  ...renderTargets: THREE.WebGLRenderTarget[]
+): void {
+  for (let i = 0, len = renderTargets.length; i < len; i++) {
+    const renderTarget = renderTargets[i];
+    const id = (renderTarget as any)._listId;
+    const list = _getRenderTargetList(id);
+    let found = false;
+    
+    _renderTargetCounts[id]--;
+    
+    for (let j = 0, jlen = list.length; j < jlen; j++) {
+      if (list[j] === renderTarget) {
+        found = true;
+        break;
+      }
+    }
+    
+    if (!found) {
+      list.push(renderTarget);
+    }
+  }
+}
+
+/**
+ * Get render target list by ID (private helper)
+ * @param id List ID
+ * @returns Render target list
+ */
+function _getRenderTargetList(id: string): THREE.WebGLRenderTarget[] {
+  return _renderTargetLists[id] || (_renderTargetLists[id] = []);
+}
+
+/**
+ * Dispose all resources
+ */
+export function dispose(): void {
+  // Dispose render targets
+  fromRenderTarget?.dispose();
+  toRenderTarget?.dispose();
+
+  // Dispose pooled render targets
+  Object.values(_renderTargetLists).forEach(list => {
+    list.forEach(rt => rt.dispose());
+  });
+
+  // Clear state
+  queue.length = 0;
+  _renderTargetLists = {};
+  _renderTargetCounts = {};
+}
+
+/**
+ * Add effect to queue (legacy function)
+ * @param effect Effect to add
+ */
+export function addEffect(effect: any): void {
+  queue.push(effect);
+}
+
+// Default export object like legacy with getters for variables
+const effectComposer = {
+  get queue() { return queue; },
+  get resolution() { return resolution; },
+  get fromRenderTarget() { return fromRenderTarget; },
+  get toRenderTarget() { return toRenderTarget; },
+  get renderer() { return renderer; },
+  get scene() { return scene; },
+  get camera() { return camera; },
+  init,
+  resize,
+  renderQueue,
+  renderScene,
+  render,
+  swapRenderTarget,
+  getRenderTarget,
+  releaseRenderTarget,
+  addEffect,
+  dispose
+};
+
 export default effectComposer;

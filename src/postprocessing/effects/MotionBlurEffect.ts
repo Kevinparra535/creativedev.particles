@@ -1,13 +1,8 @@
 import * as THREE from "three";
 import Effect from "../Effect";
-import effectComposer from "../EffectComposer";
+import * as effectComposer from "../EffectComposer";
 import * as fboHelper from "../../utils/fboHelper";
-import {
-  motionBlurFragShader,
-  motionBlurLinesFragShader,
-  motionBlurLinesVertexShader,
-  motionBlurSamplingShader,
-} from "../motionBlur/motionBlurShaders";
+import glsl from "glslify";
 
 /**
  * Motion Blur Effect
@@ -122,7 +117,7 @@ export default class MotionBlurEffect extends Effect {
         u_depthBias: { value: 0.01 },
       },
       vertexShader:
-        fboHelper.getRawShaderPrefix() + this.getMotionBlurLinesVertShader(),
+        fboHelper.getRawShaderPrefix() + this.getMotionBlurLinesVertexShader(),
       fragmentShader:
         fboHelper.getRawShaderPrefix() + this.getMotionBlurLinesFragShader(),
 
@@ -359,34 +354,6 @@ export default class MotionBlurEffect extends Effect {
   }
 
   /**
-   * Get motion blur fragment shader
-   */
-  private getMotionBlurShader(): string {
-    return motionBlurFragShader;
-  }
-
-  /**
-   * Get motion blur lines vertex shader (GLSL1 for compatibility)
-   */
-  private getMotionBlurLinesVertShader(): string {
-    return motionBlurLinesVertexShader;
-  }
-
-  /**
-   * Get motion blur lines fragment shader (GLSL1 for compatibility)
-   */
-  private getMotionBlurLinesFragShader(): string {
-    return motionBlurLinesFragShader;
-  }
-
-  /**
-   * Get motion blur sampling shader (GLSL1 for compatibility)
-   */
-  private getMotionBlurSamplingShader(): string {
-    return motionBlurSamplingShader;
-  }
-
-  /**
    * Set quality using legacy quality keys
    * @param quality Quality key from settings
    */
@@ -404,5 +371,145 @@ export default class MotionBlurEffect extends Effect {
     if (this.uniforms.u_lineAlphaMultiplier) {
       this.uniforms.u_lineAlphaMultiplier.value = this.fadeStrength;
     }
+  }
+
+  /**
+   * Get motion blur main shader (exact legacy GLSL1)
+   */
+  private getMotionBlurShader(): string {
+    return glsl`
+      uniform sampler2D u_texture;
+      uniform sampler2D u_linesTexture;
+      uniform float u_lineAlphaMultiplier;
+      
+      varying vec2 v_uv;
+      
+      void main() {
+        vec3 baseColor = texture2D(u_texture, v_uv).rgb;
+        vec4 linesColor = texture2D(u_linesTexture, v_uv);
+        
+        // Simple alpha blend
+        float alpha = linesColor.a * u_lineAlphaMultiplier;
+        vec3 color = mix(baseColor, linesColor.rgb, alpha);
+        
+        gl_FragColor = vec4(color, 1.0);
+      }
+    `;
+  }
+
+  /**
+   * Get motion blur lines vertex shader (exact legacy GLSL1)
+   */
+  private getMotionBlurLinesVertexShader(): string {
+    return glsl`
+      attribute vec3 position;
+      uniform vec2 u_resolution;
+      uniform sampler2D u_motionTexture;
+      uniform float u_maxDistance;
+      uniform float u_jitter;
+      uniform float u_motionMultiplier;
+      
+      varying vec2 v_velocity;
+      varying float v_alpha;
+      
+      void main() {
+        vec2 uv = position.xy;
+        vec4 motionData = texture2D(u_motionTexture, uv);
+        
+        vec2 velocity = motionData.xy * u_motionMultiplier;
+        float distance = length(velocity);
+        
+        // Clamp velocity
+        if (distance > u_maxDistance) {
+          velocity = normalize(velocity) * u_maxDistance;
+        }
+        
+        v_velocity = velocity;
+        v_alpha = min(distance / u_maxDistance, 1.0);
+        
+        // Position based on line endpoint
+        vec2 screenPos = uv * 2.0 - 1.0;
+        if (position.z > 0.5) {
+          screenPos += velocity / u_resolution * 2.0;
+        }
+        
+        gl_Position = vec4(screenPos, 0.0, 1.0);
+      }
+    `;
+  }
+
+  /**
+   * Get motion blur lines fragment shader (exact legacy GLSL1)
+   */
+  private getMotionBlurLinesFragShader(): string {
+    return glsl`
+      uniform sampler2D u_texture;
+      uniform float u_opacity;
+      uniform float u_fadeStrength;
+      
+      varying vec2 v_velocity;
+      varying float v_alpha;
+      
+      void main() {
+        float alpha = v_alpha * u_opacity * u_fadeStrength;
+        vec3 color = vec3(1.0); // White lines
+        
+        gl_FragColor = vec4(color, alpha);
+      }
+    `;
+  }
+
+  /**
+   * Get motion blur sampling shader (exact legacy GLSL1)
+   */
+  private getMotionBlurSamplingShader(): string {
+    return glsl`
+      uniform sampler2D u_texture;
+      uniform sampler2D u_motionTexture;
+      uniform vec2 u_resolution;
+      uniform float u_maxDistance;
+      uniform float u_fadeStrength;
+      uniform float u_motionMultiplier;
+      uniform float u_leaning;
+      
+      varying vec2 v_uv;
+      
+      void main() {
+        vec4 motionData = texture2D(u_motionTexture, v_uv);
+        vec2 velocity = motionData.xy * u_motionMultiplier;
+        
+        float distance = length(velocity);
+        if (distance > u_maxDistance) {
+          velocity = normalize(velocity) * u_maxDistance;
+          distance = u_maxDistance;
+        }
+        
+        vec3 color = vec3(0.0);
+        float totalWeight = 0.0;
+        
+        // Sample along motion vector
+        for (int i = 0; i < SAMPLE_COUNT; i++) {
+          float t = float(i) / float(SAMPLE_COUNT - 1);
+          t = mix(-u_leaning, 1.0 - u_leaning, t);
+          
+          vec2 sampleUV = v_uv + velocity * t / u_resolution;
+          
+          if (sampleUV.x >= 0.0 && sampleUV.x <= 1.0 && 
+              sampleUV.y >= 0.0 && sampleUV.y <= 1.0) {
+            float weight = 1.0 - abs(t);
+            color += texture2D(u_texture, sampleUV).rgb * weight;
+            totalWeight += weight;
+          }
+        }
+        
+        if (totalWeight > 0.0) {
+          color /= totalWeight;
+        } else {
+          color = texture2D(u_texture, v_uv).rgb;
+        }
+        
+        gl_FragColor = vec4(color, 1.0);
+      }
+    `;
   }
 }

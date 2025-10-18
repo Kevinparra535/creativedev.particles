@@ -121,13 +121,8 @@ export default class Effect {
     this.lastRenderContext = { dt, fromRenderTarget, toScreen };
 
     // Default implementation: render using fboHelper
-    if (toScreen) {
-      // Last effect renders to screen
-      fboHelper.render(this.material);
-    } else {
-      // Intermediate effects render to render target - will be handled by effectComposer
-      fboHelper.render(this.material);
-    }
+    // Both screen and render target cases use the same rendering approach
+    fboHelper.render(this.material);
   }
 
   // Store last render context for effects that need it

@@ -416,6 +416,7 @@ const LegacyParticles = () => {
             );
           })()}
         </bufferGeometry>
+
         <shaderMaterial
           glslVersion={THREE.GLSL3}
           vertexShader={trianglesVertexShader}
