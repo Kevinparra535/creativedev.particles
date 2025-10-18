@@ -93,9 +93,33 @@ export function getInitialSettings(url?: string, ua?: string): SettingsConfig {
     ? ((globalThis as any).window as Window)
     : undefined;
 
-  const search = w ? w.location.search : url ? new URL(url).search : "";
+  // Merge search and hash params with hash taking precedence (legacy behavior)
+  const href = w ? w.location.href : url || "";
+  let searchParams = new URLSearchParams();
+  let hashParams = new URLSearchParams();
 
-  const params = new URLSearchParams(search);
+  try {
+    if (w) {
+      if (w.location.search) searchParams = new URLSearchParams(w.location.search.slice(1));
+      if (w.location.hash) hashParams = new URLSearchParams(w.location.hash.slice(1));
+    } else if (url) {
+      const u = new URL(url);
+      if (u.search) searchParams = new URLSearchParams(u.search.slice(1));
+      if (u.hash) hashParams = new URLSearchParams(u.hash.slice(1));
+    }
+  } catch {
+    // Fallback parsing if URL constructor fails
+    const qIdx = href.indexOf("?");
+    const hIdx = href.indexOf("#");
+    const searchStr = qIdx >= 0 ? href.slice(qIdx + 1, hIdx >= 0 ? hIdx : undefined) : "";
+    const hashStr = hIdx >= 0 ? href.slice(hIdx + 1) : "";
+    if (searchStr) searchParams = new URLSearchParams(searchStr);
+    if (hashStr) hashParams = new URLSearchParams(hashStr);
+  }
+
+  // Build final params map where hash overrides search
+  const params = new URLSearchParams(searchParams);
+  for (const [k, v] of hashParams.entries()) params.set(k, v);
 
   // amount
   const amountParam = (params.get("amount") || "65k") as AmountKey;
@@ -146,5 +170,13 @@ export function getInitialSettings(url?: string, ua?: string): SettingsConfig {
 }
 
 // Convenience: default export initialized from the current environment.
-const DefaultSettings: SettingsConfig = getInitialSettings();
+// This will be recreated on each module load (including page reloads)
+let DefaultSettings: SettingsConfig = getInitialSettings();
+
+// Function to reinitialize settings (useful for testing or dynamic updates)
+export function reinitializeSettings(): SettingsConfig {
+  DefaultSettings = getInitialSettings();
+  return DefaultSettings;
+}
+
 export default DefaultSettings;

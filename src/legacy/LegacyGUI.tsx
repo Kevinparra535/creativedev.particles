@@ -1,8 +1,7 @@
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { folder, useControls } from "leva";
 import DefaultSettings, {
   amountList,
-  amountMap,
   motionBlurQualityList,
   motionBlurQualityMap,
 } from "../config/settings.config";
@@ -40,20 +39,8 @@ export const bloomRef = {
 const LegacyGUI = () => {
   // Track if this is the initial render to avoid showing confirm on page load
   const isInitializedRef = useRef(false);
-
-  // Initialize motion blur settings exactly like legacy
-  useEffect(() => {
-    motionBlurRef.maxDistance = 120;
-    motionBlurRef.motionMultiplier = 7;
-    motionBlurRef.linesRenderTargetScale = DefaultSettings.motionBlur
-      ? 1 / 3 // medium quality default
-      : 1 / 3;
-    
-    // Mark as initialized after first render to allow onChange to work
-    setTimeout(() => {
-      isInitializedRef.current = true;
-    }, 100);
-  }, []);
+  // Force re-render when settings are reinitialized
+  const [settingsInitialized, setSettingsInitialized] = useState(false);
 
   // Handler for amount change - only show confirm if component is initialized (not on page load)
   const handleAmountChange = useCallback((val: AmountKey) => {
@@ -61,20 +48,16 @@ const LegacyGUI = () => {
     if (!isInitializedRef.current) {
       return;
     }
-    
+
     // Legacy behavior: confirm and reload page
     if (confirm("It will restart the demo")) {
-      const [w, h, r] = amountMap[val];
-      DefaultSettings.amount = val;
-      DefaultSettings.simulatorTextureWidth = w;
-      DefaultSettings.simulatorTextureHeight = h;
-      DefaultSettings.radius = r;
-
-      // Update URL with new amount like legacy
-      const url = new URL(window.location.href);
-      url.searchParams.set("amount", val);
-      window.location.href = url.toString();
-      window.location.reload();
+      // Preserve existing hash params and only update 'amount'
+      const baseUrl = globalThis.location.href.split("#")[0];
+      const existing = new URLSearchParams(globalThis.location.hash.slice(1));
+      existing.set("amount", val);
+      const newUrl = `${baseUrl}#${existing.toString()}`;
+      globalThis.location.href = newUrl;
+      globalThis.location.reload();
     }
   }, []);
 
@@ -128,6 +111,7 @@ const LegacyGUI = () => {
     }
   }, []);
 
+  // Always call useControls (never conditionally)
   useControls(
     () => ({
       Simulator: folder(
@@ -272,8 +256,28 @@ const LegacyGUI = () => {
         { collapsed: false } // postprocessingGui.open() in legacy
       ),
     }),
-    []
+    [settingsInitialized] // Recreate controls when settings are reinitialized
   );
+
+  // Initialize settings and motion blur settings exactly like legacy
+  useEffect(() => {
+    // Reinitialize settings to capture any URL changes after reload
+    // reinitializeSettings();
+
+    motionBlurRef.maxDistance = 120;
+    motionBlurRef.motionMultiplier = 7;
+    motionBlurRef.linesRenderTargetScale = DefaultSettings.motionBlur
+      ? 1 / 3 // medium quality default
+      : 1 / 3;
+
+    // Mark settings as initialized to trigger useControls re-creation
+    setSettingsInitialized(true);
+
+    // Mark as initialized after first render to allow onChange to work
+    setTimeout(() => {
+      isInitializedRef.current = true;
+    }, 100);
+  }, []);
 
   // Mobile behavior like legacy - close GUI on mobile
   useEffect(() => {
@@ -290,5 +294,4 @@ const LegacyGUI = () => {
 
   return null; // Leva controls are rendered globally
 };
-
 export default LegacyGUI;
