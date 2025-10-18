@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef } from "react";
 import Simulator from "./Simulator";
 import MeshMotionMaterial from "../postprocessing/motionBlur/MeshMotionMaterial";
 import DefaultSettings from "../config/settings.config";
+import { lightPosition } from "./LegacyLights";
+import { mouse3d, initAnimation } from "./LegacyControls";
 
 import {
   particlesVertexShader,
@@ -121,8 +123,6 @@ const LegacyParticles = () => {
   const tmpColor = useRef(new THREE.Color());
   const col1 = useRef(new THREE.Color(DefaultSettings.color1));
   const col2 = useRef(new THREE.Color(DefaultSettings.color2));
-  const mouse3dRef = useRef(new THREE.Vector3());
-  const initAnimRef = useRef(0);
 
   // Initialize additional materials (distance and motion) when meshes are ready
   useEffect(() => {
@@ -218,7 +218,7 @@ const LegacyParticles = () => {
 
   useEffect(() => {
     simulatorRef.current!.recreate(W, H);
-    initAnimRef.current = 0;
+    // initAnimation is now handled by LegacyControls globally
     return () => {
       simulatorRef.current?.dispose();
     };
@@ -226,11 +226,7 @@ const LegacyParticles = () => {
   }, [W, H]);
 
   useFrame((state) => {
-    // intro animation timing similar to legacy
-    initAnimRef.current = Math.min(
-      1,
-      initAnimRef.current + state.clock.getDelta() * 0.25
-    );
+    // intro animation timing handled by LegacyControls globally
 
     // project mouse onto a plane facing the camera through origin
     const normal = new THREE.Vector3();
@@ -242,13 +238,13 @@ const LegacyParticles = () => {
     raycaster.setFromCamera(pointer, camera);
     const hit = new THREE.Vector3();
     if (raycaster.ray.intersectPlane(plane, hit)) {
-      mouse3dRef.current.copy(hit);
+      mouse3d.copy(hit);
     }
 
-    simulatorRef.current!.initAnimation = initAnimRef.current;
+    simulatorRef.current!.initAnimation = initAnimation;
     simulatorRef.current!.update(
       state.clock.getDelta() * 1000,
-      mouse3dRef.current
+      mouse3d
     );
 
     const posTex = simulatorRef.current!.positionRenderTarget.texture;
@@ -273,6 +269,7 @@ const LegacyParticles = () => {
         | undefined;
       if (distanceMat) {
         (distanceMat.uniforms.texturePosition.value as THREE.Texture) = posTex;
+        (distanceMat.uniforms.lightPos.value as THREE.Vector3).copy(lightPosition);
       }
 
       // Update motion material
@@ -301,6 +298,7 @@ const LegacyParticles = () => {
         .customDistanceMaterial as THREE.ShaderMaterial | undefined;
       if (distanceMat) {
         (distanceMat.uniforms.texturePosition.value as THREE.Texture) = posTex;
+        (distanceMat.uniforms.lightPos.value as THREE.Vector3).copy(lightPosition);
         distanceMat.uniforms.flipRatio.value = flipRef.current;
       }
 

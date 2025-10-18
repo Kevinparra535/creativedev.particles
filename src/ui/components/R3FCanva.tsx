@@ -1,8 +1,7 @@
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
+import { PerspectiveCamera } from "@react-three/drei";
 import Scene1 from "../scenes/lowQuality/Scene1";
-import LegacyPostProcessing from "./LegacyPostProcessing";
 import DefaultSettings from "../../config/settings.config";
 
 // Componente principal con controles de color
@@ -40,26 +39,12 @@ const R3FCanva = () => {
           position={[camBase.x, camBase.y, camBase.z]}
         />
 
-        <OrbitControls
-          makeDefault
-          enabled
-          enableRotate
-          enableZoom
-          enablePan={false}
-          // Legacy limits
-          minPolarAngle={0.3}
-          maxPolarAngle={Math.PI / 2 - 0.1}
-          maxDistance={1000}
-          // Legacy target.y = 50
-          target={[0, 50, 0]}
-        />
-
         <Scene1 />
 
         {/* Legacy PostProcessing System */}
-        {(DefaultSettings.fxaa ||
+        {/* {(DefaultSettings.fxaa ||
           DefaultSettings.bloom ||
-          DefaultSettings.motionBlur) && <LegacyPostProcessing />}
+          DefaultSettings.motionBlur) && <LegacyPostProcessing />} */}
       </Canvas>
     </div>
   );

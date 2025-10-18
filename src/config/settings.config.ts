@@ -75,6 +75,10 @@ export interface SettingsConfig {
   motionBlur: boolean; // true
   motionBlurPause: boolean; // false
   bloom: boolean; // true
+
+  // Legacy compatibility - mouse tracking
+  mouse?: any; // THREE.Vector2 - set at runtime
+  mouse3d?: any; // THREE.Vector3 - set at runtime
 }
 
 function getIsMobile(ua: string): boolean {
