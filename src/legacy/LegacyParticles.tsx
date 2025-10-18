@@ -3,13 +3,18 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import Simulator from "./Simulator";
 import MeshMotionMaterial from "../materials/motionBlur/MeshMotionMaterial";
-import {
-  particlesFragmentShader,
-  pointsVertexShader,
-  trianglesFragmentShader,
-  trianglesVertexShader,
-} from "../materials/particlesShaders";
 import DefaultSettings from "../config/settings.config";
+
+import {
+  particlesVertexShader,
+  particlesFragmentShader,
+  particlesDistanceVertexShader,
+  particlesDistanceFragmentShader,
+  particlesMotionVertexShader,
+  trianglesVertexShader,
+  trianglesDistanceShader,
+  trianglesMotionShader,
+} from "../glsl/particlesShaders";
 
 const LegacyParticles = () => {
   const { gl, camera, raycaster, pointer } = useThree();
@@ -33,11 +38,71 @@ const LegacyParticles = () => {
     return arr;
   }, [W, H]);
 
-  const drawUniforms = useMemo(
+  // Main uniforms for points (with shadowmap support)
+  const pointsUniforms = useMemo(
+    () => ({
+      ...THREE.UniformsUtils.merge([
+        THREE.UniformsLib.lights,
+        {
+          texturePosition: { value: new THREE.Texture() },
+          color1: { value: new THREE.Color(DefaultSettings.color1) },
+          color2: { value: new THREE.Color(DefaultSettings.color2) },
+        },
+      ]),
+    }),
+    []
+  );
+
+  // Main uniforms for triangles (with shadowmap support)
+  const trianglesUniforms = useMemo(
+    () => ({
+      ...THREE.UniformsUtils.merge([
+        THREE.UniformsLib.lights,
+        {
+          texturePosition: { value: new THREE.Texture() },
+          flipRatio: { value: 0 },
+          color1: { value: new THREE.Color(DefaultSettings.color1) },
+          color2: { value: new THREE.Color(DefaultSettings.color2) },
+          size: { value: 1 },
+          cameraMatrix: { value: new THREE.Matrix4() },
+        },
+      ]),
+    }),
+    []
+  );
+
+  // Distance material uniforms (for shadows)
+  const pointsDistanceUniforms = useMemo(
+    () => ({
+      lightPos: { value: new THREE.Vector3(0, 0, 0) },
+      texturePosition: { value: new THREE.Texture() },
+    }),
+    []
+  );
+
+  const trianglesDistanceUniforms = useMemo(
+    () => ({
+      lightPos: { value: new THREE.Vector3(0, 0, 0) },
+      texturePosition: { value: new THREE.Texture() },
+      flipRatio: { value: 0 },
+    }),
+    []
+  );
+
+  // Motion material uniforms (for motion blur)
+  const pointsMotionUniforms = useMemo(
     () => ({
       texturePosition: { value: new THREE.Texture() },
-      color1: { value: new THREE.Color(DefaultSettings.color1) },
-      color2: { value: new THREE.Color(DefaultSettings.color2) },
+      texturePrevPosition: { value: new THREE.Texture() },
+    }),
+    []
+  );
+
+  const trianglesMotionUniforms = useMemo(
+    () => ({
+      texturePosition: { value: new THREE.Texture() },
+      texturePrevPosition: { value: new THREE.Texture() },
+      flipRatio: { value: 0 },
     }),
     []
   );
@@ -45,21 +110,111 @@ const LegacyParticles = () => {
   const pointsRef = useRef<THREE.Points>(null!);
   const trianglesRef = useRef<THREE.Mesh>(null!);
   const flipRef = useRef(0);
-  const motionMatRef = useRef<MeshMotionMaterial | null>(null);
+
+  // Material refs for additional materials (distance, motion)
+  const pointsDistanceMatRef = useRef<THREE.ShaderMaterial | null>(null);
+  const trianglesDistanceMatRef = useRef<THREE.ShaderMaterial | null>(null);
+  const pointsMotionMatRef = useRef<MeshMotionMaterial | null>(null);
+  const trianglesMotionMatRef = useRef<MeshMotionMaterial | null>(null);
+
+  // Color animation refs
   const tmpColor = useRef(new THREE.Color());
   const col1 = useRef(new THREE.Color(DefaultSettings.color1));
   const col2 = useRef(new THREE.Color(DefaultSettings.color2));
   const mouse3dRef = useRef(new THREE.Vector3());
   const initAnimRef = useRef(0);
 
+  // Initialize additional materials (distance and motion) when meshes are ready
   useEffect(() => {
-    if (trianglesRef.current && !motionMatRef.current) {
-      motionMatRef.current = new MeshMotionMaterial({
-        uniforms: { size: { value: 1 } },
+    // Points distance material (for shadows)
+    if (pointsRef.current && !pointsDistanceMatRef.current) {
+      pointsDistanceMatRef.current = new THREE.ShaderMaterial({
+        uniforms: pointsDistanceUniforms,
+        vertexShader: particlesDistanceVertexShader,
+        fragmentShader: particlesDistanceFragmentShader,
+        depthTest: true,
+        depthWrite: true,
+        side: THREE.BackSide,
+        blending: THREE.NoBlending,
+        glslVersion: THREE.GLSL3,
       });
-      (trianglesRef.current as any).motionMaterial = motionMatRef.current;
+      (pointsRef.current as any).customDistanceMaterial =
+        pointsDistanceMatRef.current;
     }
-  }, []);
+
+    // Points motion material (for motion blur)
+    if (pointsRef.current && !pointsMotionMatRef.current) {
+      pointsMotionMatRef.current = new MeshMotionMaterial({
+        uniforms: pointsMotionUniforms,
+      });
+      // Set shader manually after creation
+      pointsMotionMatRef.current.vertexShader = particlesMotionVertexShader;
+      pointsMotionMatRef.current.depthTest = true;
+      pointsMotionMatRef.current.depthWrite = true;
+      pointsMotionMatRef.current.side = THREE.DoubleSide;
+      pointsMotionMatRef.current.blending = THREE.NoBlending;
+      (pointsRef.current as any).motionMaterial = pointsMotionMatRef.current;
+    }
+
+    // Triangles distance material (for shadows)
+    if (trianglesRef.current && !trianglesDistanceMatRef.current) {
+      trianglesDistanceMatRef.current = new THREE.ShaderMaterial({
+        uniforms: trianglesDistanceUniforms,
+        vertexShader: trianglesDistanceShader,
+        fragmentShader: particlesDistanceFragmentShader, // same as points
+        depthTest: true,
+        depthWrite: true,
+        side: THREE.BackSide,
+        blending: THREE.NoBlending,
+        glslVersion: THREE.GLSL3,
+      });
+      (trianglesRef.current as any).customDistanceMaterial =
+        trianglesDistanceMatRef.current;
+    }
+
+    // Triangles motion material (for motion blur)
+    if (trianglesRef.current && !trianglesMotionMatRef.current) {
+      trianglesMotionMatRef.current = new MeshMotionMaterial({
+        uniforms: trianglesMotionUniforms,
+      });
+      // Set shader manually after creation
+      trianglesMotionMatRef.current.vertexShader = trianglesMotionShader;
+      trianglesMotionMatRef.current.depthTest = true;
+      trianglesMotionMatRef.current.depthWrite = true;
+      trianglesMotionMatRef.current.side = THREE.DoubleSide;
+      trianglesMotionMatRef.current.blending = THREE.NoBlending;
+      (trianglesRef.current as any).motionMaterial =
+        trianglesMotionMatRef.current;
+    }
+
+    // Enable shadows like legacy
+    if (pointsRef.current) {
+      pointsRef.current.castShadow = true;
+      pointsRef.current.receiveShadow = true;
+
+      // Initialize color uniforms like legacy
+      const mat = pointsRef.current.material as THREE.ShaderMaterial;
+      (mat.uniforms.color1.value as THREE.Color).copy(col1.current);
+      (mat.uniforms.color2.value as THREE.Color).copy(col2.current);
+    }
+    if (trianglesRef.current) {
+      trianglesRef.current.castShadow = true;
+      trianglesRef.current.receiveShadow = true;
+
+      // Initialize color uniforms and cameraMatrix like legacy
+      const mat = trianglesRef.current.material as THREE.ShaderMaterial;
+      (mat.uniforms.color1.value as THREE.Color).copy(col1.current);
+      (mat.uniforms.color2.value as THREE.Color).copy(col2.current);
+      (mat.uniforms.cameraMatrix.value as THREE.Matrix4).copy(
+        camera.matrixWorld
+      );
+    }
+  }, [
+    pointsDistanceUniforms,
+    trianglesDistanceUniforms,
+    pointsMotionUniforms,
+    trianglesMotionUniforms,
+  ]);
 
   useEffect(() => {
     simulatorRef.current!.recreate(W, H);
@@ -105,26 +260,58 @@ const LegacyParticles = () => {
     tmpColor.current.setStyle(DefaultSettings.color2);
     col2.current.lerp(tmpColor.current, 0.05);
 
+    // Update points materials
     if (pointsRef.current) {
       const mat = pointsRef.current.material as THREE.ShaderMaterial;
       (mat.uniforms.texturePosition.value as THREE.Texture) = posTex;
       (mat.uniforms.color1.value as THREE.Color).copy(col1.current);
       (mat.uniforms.color2.value as THREE.Color).copy(col2.current);
+
+      // Update distance material
+      const distanceMat = (pointsRef.current as any).customDistanceMaterial as
+        | THREE.ShaderMaterial
+        | undefined;
+      if (distanceMat) {
+        (distanceMat.uniforms.texturePosition.value as THREE.Texture) = posTex;
+      }
+
+      // Update motion material
+      const motionMat = (pointsRef.current as any).motionMaterial as
+        | MeshMotionMaterial
+        | undefined;
+      if (motionMat) {
+        motionMat.uniforms.texturePosition.value = posTex;
+        motionMat.uniforms.texturePrevPosition.value = prevPosTex;
+      }
     }
 
+    // Update triangles materials
     if (trianglesRef.current) {
       const tMat = trianglesRef.current.material as THREE.ShaderMaterial;
       (tMat.uniforms.texturePosition.value as THREE.Texture) = posTex;
       (tMat.uniforms.color1.value as THREE.Color).copy(col1.current);
       (tMat.uniforms.color2.value as THREE.Color).copy(col2.current);
+      (tMat.uniforms.cameraMatrix.value as THREE.Matrix4).copy(
+        camera.matrixWorld
+      );
       tMat.uniforms.flipRatio.value = flipRef.current ^= 1;
-      const motion = (trianglesRef.current as any).motionMaterial as
+
+      // Update distance material
+      const distanceMat = (trianglesRef.current as any)
+        .customDistanceMaterial as THREE.ShaderMaterial | undefined;
+      if (distanceMat) {
+        (distanceMat.uniforms.texturePosition.value as THREE.Texture) = posTex;
+        distanceMat.uniforms.flipRatio.value = flipRef.current;
+      }
+
+      // Update motion material
+      const motionMat = (trianglesRef.current as any).motionMaterial as
         | MeshMotionMaterial
         | undefined;
-      if (motion) {
-        motion.uniforms.texturePosition.value = posTex;
-        motion.uniforms.texturePrevPosition.value = prevPosTex;
-        motion.uniforms.flipRatio.value = flipRef.current;
+      if (motionMat) {
+        motionMat.uniforms.texturePosition.value = posTex;
+        motionMat.uniforms.texturePrevPosition.value = prevPosTex;
+        motionMat.uniforms.flipRatio.value = flipRef.current;
       }
     }
 
@@ -143,9 +330,11 @@ const LegacyParticles = () => {
         </bufferGeometry>
         <shaderMaterial
           glslVersion={THREE.GLSL3}
-          vertexShader={pointsVertexShader}
+          vertexShader={particlesVertexShader}
           fragmentShader={particlesFragmentShader}
-          uniforms={drawUniforms as unknown as { [k: string]: THREE.IUniform }}
+          uniforms={
+            pointsUniforms as unknown as { [k: string]: THREE.IUniform }
+          }
           blending={THREE.NoBlending}
           depthWrite
         />
@@ -230,15 +419,9 @@ const LegacyParticles = () => {
         <shaderMaterial
           glslVersion={THREE.GLSL3}
           vertexShader={trianglesVertexShader}
-          fragmentShader={trianglesFragmentShader}
+          fragmentShader={particlesFragmentShader}
           uniforms={
-            {
-              texturePosition: { value: new THREE.Texture() },
-              flipRatio: { value: 0 },
-              color1: { value: new THREE.Color(DefaultSettings.color1) },
-              color2: { value: new THREE.Color(DefaultSettings.color2) },
-              size: { value: 1 },
-            } as unknown as { [k: string]: THREE.IUniform }
+            trianglesUniforms as unknown as { [k: string]: THREE.IUniform }
           }
           blending={THREE.NoBlending}
           depthWrite
