@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import Simulator from "./Simulator";
-import MeshMotionMaterial from "../materials/motionBlur/MeshMotionMaterial";
+import MeshMotionMaterial from "../postprocessing/motionBlur/MeshMotionMaterial";
 import DefaultSettings from "../config/settings.config";
 
 import {
@@ -146,13 +146,13 @@ const LegacyParticles = () => {
     if (pointsRef.current && !pointsMotionMatRef.current) {
       pointsMotionMatRef.current = new MeshMotionMaterial({
         uniforms: pointsMotionUniforms,
+        vertexShader: particlesMotionVertexShader,
+        motionMultiplier: 1,
+        depthTest: true,
+        depthWrite: true,
+        side: THREE.DoubleSide,
+        blending: THREE.NoBlending,
       });
-      // Set shader manually after creation
-      pointsMotionMatRef.current.vertexShader = particlesMotionVertexShader;
-      pointsMotionMatRef.current.depthTest = true;
-      pointsMotionMatRef.current.depthWrite = true;
-      pointsMotionMatRef.current.side = THREE.DoubleSide;
-      pointsMotionMatRef.current.blending = THREE.NoBlending;
       (pointsRef.current as any).motionMaterial = pointsMotionMatRef.current;
     }
 
@@ -176,13 +176,13 @@ const LegacyParticles = () => {
     if (trianglesRef.current && !trianglesMotionMatRef.current) {
       trianglesMotionMatRef.current = new MeshMotionMaterial({
         uniforms: trianglesMotionUniforms,
+        vertexShader: trianglesMotionShader,
+        motionMultiplier: 1,
+        depthTest: true,
+        depthWrite: true,
+        side: THREE.DoubleSide,
+        blending: THREE.NoBlending,
       });
-      // Set shader manually after creation
-      trianglesMotionMatRef.current.vertexShader = trianglesMotionShader;
-      trianglesMotionMatRef.current.depthTest = true;
-      trianglesMotionMatRef.current.depthWrite = true;
-      trianglesMotionMatRef.current.side = THREE.DoubleSide;
-      trianglesMotionMatRef.current.blending = THREE.NoBlending;
       (trianglesRef.current as any).motionMaterial =
         trianglesMotionMatRef.current;
     }
