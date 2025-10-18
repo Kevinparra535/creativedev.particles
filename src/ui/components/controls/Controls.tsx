@@ -1,6 +1,13 @@
 import { folder, useControls } from "leva";
-import settings, { amountList, amountMap, motionBlurQualityList } from "../../../config/settings.config";
-import type { MotionBlurQualityKey, AmountKey } from "../../../config/settings.config";
+import DefaultSettings, {
+  amountList,
+  amountMap,
+  motionBlurQualityList,
+} from "../../../config/settings.config";
+import type {
+  MotionBlurQualityKey,
+  AmountKey,
+} from "../../../config/settings.config";
 
 const Controls = () => {
   useControls(
@@ -9,69 +16,116 @@ const Controls = () => {
         {
           amount: {
             options: amountList,
-            value: settings.amount as AmountKey,
+            value: DefaultSettings.amount,
             onChange: (val: AmountKey) => {
               const [w, h, r] = amountMap[val];
-              settings.amount = val;
-              settings.simulatorTextureWidth = w;
-              settings.simulatorTextureHeight = h;
-              settings.radius = r;
+              DefaultSettings.amount = val;
+              DefaultSettings.simulatorTextureWidth = w;
+              DefaultSettings.simulatorTextureHeight = h;
+              DefaultSettings.radius = r;
               // Note: Changing amount requires re-seeding sim. Reload is simplest for now.
             },
           },
-          speed: { value: settings.speed, min: 0, max: 3, step: 0.01, onChange: (v: number) => (settings.speed = v) },
+          speed: {
+            value: DefaultSettings.speed,
+            min: 0,
+            max: 3,
+            step: 0.01,
+            onChange: (v: number) => (DefaultSettings.speed = v),
+          },
           dieSpeed: {
-            value: settings.dieSpeed,
+            value: DefaultSettings.dieSpeed,
             min: 0.0005,
             max: 0.05,
             step: 0.0005,
-            onChange: (v: number) => (settings.dieSpeed = v),
+            onChange: (v: number) => (DefaultSettings.dieSpeed = v),
           },
-          radius: { value: settings.radius, min: 0.2, max: 3, step: 0.01, onChange: (v: number) => (settings.radius = v) },
-          curlSize: { value: settings.curlSize, min: 0.001, max: 0.05, step: 0.001, onChange: (v: number) => (settings.curlSize = v) },
-          attraction: { value: settings.attraction, min: -2, max: 2, step: 0.01, onChange: (v: number) => (settings.attraction = v) },
-          followMouse: { value: settings.followMouse, onChange: (v: boolean) => (settings.followMouse = v) },
+          radius: {
+            value: DefaultSettings.radius,
+            min: 0.2,
+            max: 3,
+            step: 0.01,
+            onChange: (v: number) => (DefaultSettings.radius = v),
+          },
+          curlSize: {
+            value: DefaultSettings.curlSize,
+            min: 0.001,
+            max: 0.05,
+            step: 0.001,
+            onChange: (v: number) => (DefaultSettings.curlSize = v),
+          },
+          attraction: {
+            value: DefaultSettings.attraction,
+            min: -2,
+            max: 2,
+            step: 0.01,
+            onChange: (v: number) => (DefaultSettings.attraction = v),
+          },
+          followMouse: {
+            value: DefaultSettings.followMouse,
+            onChange: (v: boolean) => (DefaultSettings.followMouse = v),
+          },
         },
         { collapsed: false }
       ),
       Rendering: folder(
         {
           shadowDarkness: {
-            value: settings.shadowDarkness,
+            value: DefaultSettings.shadowDarkness,
             min: 0,
             max: 1,
             step: 0.01,
-            onChange: (v: number) => (settings.shadowDarkness = v),
+            onChange: (v: number) => (DefaultSettings.shadowDarkness = v),
           },
           useTriangleParticles: {
-            value: settings.useTriangleParticles,
-            onChange: (v: boolean) => (settings.useTriangleParticles = v),
+            value: DefaultSettings.useTriangleParticles,
+            onChange: (v: boolean) =>
+              (DefaultSettings.useTriangleParticles = v),
           },
-          color1: { value: settings.color1, onChange: (v: string) => (settings.color1 = v) },
-          color2: { value: settings.color2, onChange: (v: string) => (settings.color2 = v) },
-          bgColor: { value: settings.bgColor, onChange: (v: string) => (settings.bgColor = v) },
+          color1: {
+            value: DefaultSettings.color1,
+            onChange: (v: string) => (DefaultSettings.color1 = v),
+          },
+          color2: {
+            value: DefaultSettings.color2,
+            onChange: (v: string) => (DefaultSettings.color2 = v),
+          },
+          bgColor: {
+            value: DefaultSettings.bgColor,
+            onChange: (v: string) => (DefaultSettings.bgColor = v),
+          },
         },
         { collapsed: false }
       ),
       "Post-Processing": folder(
         {
-          fxaa: { value: settings.fxaa, onChange: (v: boolean) => (settings.fxaa = v) },
-          motionBlur: { value: settings.motionBlur, onChange: (v: boolean) => (settings.motionBlur = v) },
+          fxaa: {
+            value: DefaultSettings.fxaa,
+            onChange: (v: boolean) => (DefaultSettings.fxaa = v),
+          },
+          motionBlur: {
+            value: DefaultSettings.motionBlur,
+            onChange: (v: boolean) => (DefaultSettings.motionBlur = v),
+          },
           motionBlurPause: {
-            value: settings.motionBlurPause,
-            onChange: (v: boolean) => (settings.motionBlurPause = v),
+            value: DefaultSettings.motionBlurPause,
+            onChange: (v: boolean) => (DefaultSettings.motionBlurPause = v),
           },
           motionBlurQuality: {
-            options: motionBlurQualityList as MotionBlurQualityKey[],
-            value: settings.motionBlurQuality as MotionBlurQualityKey,
-            onChange: (v: MotionBlurQualityKey) => (settings.motionBlurQuality = v),
+            options: motionBlurQualityList,
+            value: DefaultSettings.motionBlurQuality,
+            onChange: (v: MotionBlurQualityKey) =>
+              (DefaultSettings.motionBlurQuality = v),
           },
           motionMultiplier: {
             value: 7,
             min: 0.1,
             max: 15,
           },
-          bloom: { value: settings.bloom, onChange: (v: boolean) => (settings.bloom = v) },
+          bloom: {
+            value: DefaultSettings.bloom,
+            onChange: (v: boolean) => (DefaultSettings.bloom = v),
+          },
           bloomRadius: { value: 1, min: 0, max: 3 },
           bloomAmount: { value: 1, min: 0, max: 3 },
         },

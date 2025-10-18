@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 // Imports nativos de Vite con ?raw (sin plugins)
 
-import shaderParse from "../utils/shaderParse";
+// import shaderParse from "../utils/shaderParse"; // Temporarily disabled
 import DefaultSettings from "../config/settings.config";
 import { positionFrag, quadVert, throughFrag } from "../glsl/simulationShaders";
 

@@ -29,44 +29,22 @@ let _scene: THREE.Scene | null = null;
 let _camera: THREE.Camera | null = null;
 let _mesh: THREE.Mesh | null = null;
 let _copyMaterial: THREE.RawShaderMaterial | null = null;
-let _rawShaderPrefix = "";
-let _vertexShader = "";
 
-// Legacy-compatible shaders
-const quadVertexShader = glsl`
-precision highp float;
+// Legacy-compatible global variables that get exported
+let _rawShaderPrefix: string = "";
+let _vertexShader: string = "";
 
-in vec3 position;
-in vec2 uv;
-
-out vec2 v_uv;
-
-void main() {
-  v_uv = uv;
-  gl_Position = vec4(position, 1.0);
-}
-
-`;
-
-const quadFragmentShader = glsl`
-precision highp float;
-
-uniform sampler2D u_texture;
-in vec2 v_uv;
-out vec4 outColor;
-
-void main() {
-  outColor = texture(u_texture, v_uv);
-}
-
-`;
+// Legacy exports (mutable globals like in legacy)
+export let rawShaderPrefix: string = "";
+export let vertexShader: string = "";
+export let copyMaterial = (): THREE.RawShaderMaterial | null => _copyMaterial;
 
 /**
  * Initialize FBO helper with renderer (legacy pattern)
  * @param renderer WebGL renderer instance
  */
 export function init(renderer: THREE.WebGLRenderer): void {
-  // Ensure it won't be initialized twice
+  // Ensure it won't be initialized twice (exact legacy check)
   if (_renderer) return;
 
   _renderer = renderer;
@@ -75,46 +53,77 @@ export function init(renderer: THREE.WebGLRenderer): void {
   _camera = new THREE.Camera();
   _camera.position.z = 1;
 
+  // Create vertex shader with prefix like legacy (using glslify like legacy)
+  _vertexShader = glsl`
+        precision highp float;
+
+        in vec3 position;
+        in vec2 uv;
+
+        out vec2 v_uv;
+
+        void main() {
+          v_uv = uv;
+          gl_Position = vec4(position, 1.0);
+        }
+  `;
+
+  // Create fragment shader with prefix like legacy (using glslify like legacy)
+  const fragmentShader = glsl`
+      precision highp float;
+
+      uniform sampler2D u_texture;
+      in vec2 v_uv;
+
+      out vec4 outColor;
+
+      void main() {
+        outColor = texture(u_texture, v_uv);
+      }
+
+  `;
+
   _copyMaterial = new THREE.RawShaderMaterial({
     uniforms: {
       u_texture: { value: null as unknown as THREE.Texture },
     },
-    vertexShader: quadVertexShader,
-    fragmentShader: quadFragmentShader,
+    vertexShader: _vertexShader,
+    fragmentShader: fragmentShader,
     glslVersion: THREE.GLSL3,
   });
+
+  // Export copyMaterial like legacy
+  copyMaterial = _copyMaterial;
 
   _mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _copyMaterial);
   _scene.add(_mesh);
 }
 
 /**
- * Copy texture from input to output render target
+ * Copy texture from input to output render target (exact legacy signature)
  * @param inputTexture Source texture
- * @param outputTexture Target render target (optional, renders to screen if null)
+ * @param ouputTexture Target render target (legacy typo preserved for compatibility)
  */
 export function copy(
   inputTexture: THREE.Texture,
-  outputTexture?: THREE.WebGLRenderTarget
+  ouputTexture?: THREE.WebGLRenderTarget
 ): void {
-  if (!_renderer || !_mesh || !_scene || !_camera || !_copyMaterial) {
-    throw new Error("FBO Helper not initialized. Call init(renderer) first.");
-  }
+  if (!_mesh || !_copyMaterial) return;
 
   _mesh.material = _copyMaterial;
   _copyMaterial.uniforms.u_texture.value = inputTexture;
 
-  if (outputTexture) {
-    _renderer.setRenderTarget(outputTexture);
-    _renderer.render(_scene, _camera);
-    _renderer.setRenderTarget(null);
+  if (ouputTexture) {
+    _renderer!.setRenderTarget(ouputTexture);
+    _renderer!.render(_scene!, _camera!);
+    _renderer!.setRenderTarget(null);
   } else {
-    _renderer.render(_scene, _camera);
+    _renderer!.render(_scene!, _camera!);
   }
 }
 
 /**
- * Render with custom material to render target
+ * Render with custom material to render target (exact legacy signature)
  * @param material Custom material to use
  * @param renderTarget Target render target (optional, renders to screen if null)
  */
@@ -122,51 +131,38 @@ export function render(
   material: THREE.Material,
   renderTarget?: THREE.WebGLRenderTarget
 ): void {
-  if (!_renderer || !_mesh || !_scene || !_camera) {
-    throw new Error("FBO Helper not initialized. Call init(renderer) first.");
-  }
+  if (!_mesh) return;
 
   _mesh.material = material;
 
   if (renderTarget) {
-    _renderer.setRenderTarget(renderTarget);
-    _renderer.render(_scene, _camera);
-    _renderer.setRenderTarget(null);
+    _renderer!.setRenderTarget(renderTarget);
+    _renderer!.render(_scene!, _camera!);
+    _renderer!.setRenderTarget(null);
   } else {
-    _renderer.render(_scene, _camera);
+    _renderer!.render(_scene!, _camera!);
   }
 }
 
 /**
- * Get current renderer color state
+ * Get current renderer color state (exact legacy implementation)
  * @returns Color state object
  */
 export function getColorState(): ColorState {
-  if (!_renderer) {
-    throw new Error("FBO Helper not initialized. Call init(renderer) first.");
-  }
-
-  const color = new THREE.Color();
-  _renderer.getClearColor(color);
-
   return {
-    autoClearColor: _renderer.autoClearColor,
-    clearColor: color.getHex(),
-    clearAlpha: _renderer.getClearAlpha(),
+    autoClearColor: _renderer!.autoClearColor,
+    clearColor: _renderer!.getClearColor(new THREE.Color()).getHex(),
+    clearAlpha: _renderer!.getClearAlpha(),
   };
 }
 
 /**
- * Set renderer color state
+ * Set renderer color state (exact legacy implementation)
  * @param state Color state to apply
  */
 export function setColorState(state: ColorState): void {
-  if (!_renderer) {
-    throw new Error("FBO Helper not initialized. Call init(renderer) first.");
-  }
-
-  _renderer.setClearColor(state.clearColor, state.clearAlpha);
-  _renderer.autoClearColor = state.autoClearColor;
+  _renderer!.setClearColor(state.clearColor, state.clearAlpha);
+  _renderer!.autoClearColor = state.autoClearColor;
 }
 
 /**
@@ -216,12 +212,11 @@ export function createRenderTarget(
     type: type || THREE.UnsignedByteType,
     minFilter: minFilter || THREE.LinearFilter,
     magFilter: magFilter || THREE.LinearFilter,
-    // Legacy had these commented, but they default to false anyway
     // depthBuffer: false,
     // stencilBuffer: false
   });
 
-  // Legacy specific: disable mipmap generation
+  // Exact legacy behavior: disable mipmap generation
   renderTarget.texture.generateMipmaps = false;
 
   return renderTarget;
