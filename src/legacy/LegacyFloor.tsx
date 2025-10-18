@@ -28,6 +28,7 @@ const LegacyFloor = () => {
   return (
     <mesh
       ref={meshRef}
+      name="legacy-floor"
       position={[0, -100, 0]}
       rotation={[-Math.PI / 2, 0, 0]} // Legacy: floor.rotation.x = -1.57
       receiveShadow

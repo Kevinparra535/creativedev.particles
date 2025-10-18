@@ -3,6 +3,8 @@ import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
 import Scene1 from "../scenes/lowQuality/Scene1";
 import DefaultSettings from "../../config/settings.config";
+import LegacyPostProcessing from "./LegacyPostProcessing";
+import LegacyFogAndClearColor from "../../legacy/LegacyFogAndClearColor";
 
 // Componente principal con controles de color
 const R3FCanva = () => {
@@ -35,9 +37,8 @@ const R3FCanva = () => {
         />
 
         <Scene1 />
-
-        {/* Legacy PostProcessing System - Always enabled for GUI controls */}
-        {/* <LegacyPostProcessing /> */}
+        <LegacyFogAndClearColor />
+        <LegacyPostProcessing />
       </Canvas>
     </div>
   );

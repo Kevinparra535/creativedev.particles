@@ -3,6 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import PostProcessing from "../../postprocessing/PostProcessing";
 import * as fboHelper from "../../utils/fboHelper";
 import DefaultSettings from "../../config/settings.config";
+import { motionBlurQualityMap } from "../../config/settings.config";
 
 /**
  * Legacy PostProcessing integration for React Three Fiber
@@ -24,6 +25,16 @@ const LegacyPostProcessing = () => {
       // Initialize postprocessing system
       PostProcessing.init(gl, scene, camera);
 
+      // Initialize defaults like legacy
+      const motion = PostProcessing.getMotionBlur();
+      if (motion) {
+        motion.maxDistance = 120;
+        motion.motionMultiplier = 7;
+        motion.linesRenderTargetScale =
+          motionBlurQualityMap[DefaultSettings.motionBlurQuality];
+        motion.resize();
+      }
+
       postProcessingRef.current = PostProcessing;
       initializeRef.current = true;
 
@@ -39,24 +50,20 @@ const LegacyPostProcessing = () => {
     }
   }, [size.width, size.height]);
 
-  // Handle settings changes
+  // Handle settings changes (toggles and quality)
   useEffect(() => {
     if (!postProcessingRef.current) return;
 
-    // Update FXAA enabled state
     postProcessingRef.current.setFXAAEnabled(DefaultSettings.fxaa);
+    postProcessingRef.current.setBloomEnabled(DefaultSettings.bloom);
+    postProcessingRef.current.setMotionBlurEnabled(DefaultSettings.motionBlur);
 
-    // Update Bloom enabled state
-    // postProcessingRef.current.setBloomEnabled(DefaultSettings.bloom);
-
-    // Update Motion Blur enabled state
-    // postProcessingRef.current.setMotionBlurEnabled(DefaultSettings.motionBlur);
-
-    // Update motion blur quality
-    // const motionBlur = postProcessingRef.current.getMotionBlur();
-    // if (motionBlur) {
-      // motionBlur.setQuality(DefaultSettings.motionBlurQuality);
-    // }
+    const motion = postProcessingRef.current.getMotionBlur();
+    if (motion) {
+      motion.linesRenderTargetScale =
+        motionBlurQualityMap[DefaultSettings.motionBlurQuality];
+      motion.resize();
+    }
   }, [
     DefaultSettings.fxaa,
     DefaultSettings.bloom,
@@ -66,10 +73,16 @@ const LegacyPostProcessing = () => {
 
   // Render loop using legacy pattern
   useFrame((_state, delta) => {
-    if (postProcessingRef.current) {
-      // Legacy render pattern: render(dt)
-      postProcessingRef.current.render(delta);
+    const motion = postProcessingRef.current?.getMotionBlur();
+    if (motion) {
+      // Legacy: motionBlur.skipMatrixUpdate = !(dieSpeed || speed) && motionBlurPause
+      motion.skipMatrixUpdate =
+        !(DefaultSettings.dieSpeed || DefaultSettings.speed) &&
+        DefaultSettings.motionBlurPause;
     }
+
+    // Legacy render pattern: render(dt)
+    postProcessingRef.current?.render(delta);
   });
 
   return null; // This component doesn't render anything itself

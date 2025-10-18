@@ -19,7 +19,7 @@ import {
 } from "../glsl/particlesShaders";
 
 const LegacyParticles = () => {
-  const { gl, camera, raycaster, pointer } = useThree();
+  const { gl, camera } = useThree();
   const W = DefaultSettings.simulatorTextureWidth;
   const H = DefaultSettings.simulatorTextureHeight;
 
@@ -227,25 +227,9 @@ const LegacyParticles = () => {
 
   useFrame((state) => {
     // intro animation timing handled by LegacyControls globally
-
-    // project mouse onto a plane facing the camera through origin
-    const normal = new THREE.Vector3();
-    (camera as any).getWorldDirection(normal);
-    const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(
-      normal,
-      new THREE.Vector3()
-    );
-    raycaster.setFromCamera(pointer, camera);
-    const hit = new THREE.Vector3();
-    if (raycaster.ray.intersectPlane(plane, hit)) {
-      mouse3d.copy(hit);
-    }
-
+    // Use mouse3d computed by LegacyControls (ray to z-plane through origin), like legacy
     simulatorRef.current!.initAnimation = initAnimation;
-    simulatorRef.current!.update(
-      state.clock.getDelta() * 1000,
-      mouse3d
-    );
+    simulatorRef.current!.update(state.clock.getDelta() * 1000, mouse3d);
 
     const posTex = simulatorRef.current!.positionRenderTarget.texture;
     const prevPosTex = simulatorRef.current!.prevPositionRenderTarget.texture;
@@ -269,7 +253,9 @@ const LegacyParticles = () => {
         | undefined;
       if (distanceMat) {
         (distanceMat.uniforms.texturePosition.value as THREE.Texture) = posTex;
-        (distanceMat.uniforms.lightPos.value as THREE.Vector3).copy(lightPosition);
+        (distanceMat.uniforms.lightPos.value as THREE.Vector3).copy(
+          lightPosition
+        );
       }
 
       // Update motion material
@@ -298,7 +284,9 @@ const LegacyParticles = () => {
         .customDistanceMaterial as THREE.ShaderMaterial | undefined;
       if (distanceMat) {
         (distanceMat.uniforms.texturePosition.value as THREE.Texture) = posTex;
-        (distanceMat.uniforms.lightPos.value as THREE.Vector3).copy(lightPosition);
+        (distanceMat.uniforms.lightPos.value as THREE.Vector3).copy(
+          lightPosition
+        );
         distanceMat.uniforms.flipRatio.value = flipRef.current;
       }
 
