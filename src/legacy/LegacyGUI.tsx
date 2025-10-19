@@ -41,6 +41,11 @@ const LegacyGUI = () => {
   const isInitializedRef = useRef(false);
   // Force re-render when settings are reinitialized
   const [settingsInitialized, setSettingsInitialized] = useState(false);
+  // Track toggle states to force control enable/disable updates (legacy enableGuiControl behavior)
+  const [motionBlurEnabled, setMotionBlurEnabled] = useState(
+    DefaultSettings.motionBlur
+  );
+  const [bloomEnabled, setBloomEnabled] = useState(DefaultSettings.bloom);
 
   // Handler for amount change - only show confirm if component is initialized (not on page load)
   const handleAmountChange = useCallback((val: AmountKey) => {
@@ -201,10 +206,10 @@ const LegacyGUI = () => {
             onChange: (v: boolean) => (DefaultSettings.fxaa = v),
           },
           motionBlur: {
-            value: DefaultSettings.motionBlur,
+            value: motionBlurEnabled,
             onChange: (v: boolean) => {
               DefaultSettings.motionBlur = v;
-              // Enable/disable controls will be handled by individual control disabled property
+              setMotionBlurEnabled(v); // Force re-render to update disabled state (legacy enableGuiControl)
             },
           },
           motionDistance: {
@@ -212,7 +217,7 @@ const LegacyGUI = () => {
             min: 1,
             max: 300,
             step: 1,
-            disabled: !DefaultSettings.motionBlur,
+            disabled: !motionBlurEnabled, // Now reactive
             onChange: handleMotionDistanceChange,
           },
           motionMultiplier: {
@@ -220,20 +225,20 @@ const LegacyGUI = () => {
             min: 0.1,
             max: 15,
             step: 0.1,
-            disabled: !DefaultSettings.motionBlur,
+            disabled: !motionBlurEnabled, // Now reactive
             onChange: handleMotionMultiplierChange,
           },
           motionQuality: {
             options: motionBlurQualityList,
             value: DefaultSettings.motionBlurQuality,
-            disabled: !DefaultSettings.motionBlur,
+            disabled: !motionBlurEnabled, // Now reactive
             onChange: handleMotionQualityChange,
           },
           bloom: {
-            value: DefaultSettings.bloom,
+            value: bloomEnabled,
             onChange: (v: boolean) => {
               DefaultSettings.bloom = v;
-              // Enable/disable controls will be handled by individual control disabled property
+              setBloomEnabled(v); // Force re-render to update disabled state (legacy enableGuiControl)
             },
           },
           bloomRadius: {
@@ -241,7 +246,7 @@ const LegacyGUI = () => {
             min: 0,
             max: 3,
             step: 0.01,
-            disabled: !DefaultSettings.bloom,
+            disabled: !bloomEnabled, // Now reactive
             onChange: handleBloomRadiusChange,
           },
           bloomAmount: {
@@ -249,14 +254,14 @@ const LegacyGUI = () => {
             min: 0,
             max: 3,
             step: 0.01,
-            disabled: !DefaultSettings.bloom,
+            disabled: !bloomEnabled, // Now reactive
             onChange: handleBloomAmountChange,
           },
         },
         { collapsed: false } // postprocessingGui.open() in legacy
       ),
     }),
-    [settingsInitialized] // Recreate controls when settings are reinitialized
+    [settingsInitialized, motionBlurEnabled, bloomEnabled] // Re-create when toggles change (legacy enableGuiControl)
   );
 
   // Initialize settings and motion blur settings exactly like legacy

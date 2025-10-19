@@ -148,7 +148,7 @@ export function getInitialSettings(url?: string, ua?: string): SettingsConfig {
 
     useTriangleParticles: true,
     followMouse: true,
-    speed: 1,
+    speed: 1, // Legacy default: 1 (not 3)
     dieSpeed: 0.015,
     radius,
     curlSize: 0.02,
