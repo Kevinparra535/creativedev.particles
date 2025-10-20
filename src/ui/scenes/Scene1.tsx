@@ -23,7 +23,7 @@ const Scene1 = () => {
     <>
       <Lights />
       <Floor />
-  <ControlsPanel />
+      <ControlsPanel />
       <AdaptiveParticles
         mode={mode as any}
         cols={s.cols}
@@ -33,6 +33,7 @@ const Scene1 = () => {
         dieSpeed={s.dieSpeed}
         curlSize={s.curlSize}
         attraction={s.attraction}
+        flipRatio={s.flipRatio}
         color1={s.color1}
         color2={s.color2}
       />
