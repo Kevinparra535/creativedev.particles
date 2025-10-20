@@ -173,6 +173,24 @@ export default function ControlsPanel() {
   useEffect(() => {
     // Simulator updates
     if (sim.amount !== amount) {
+      // Legacy behavior: confirm + reload with URL param
+      if (globalThis.window !== undefined) {
+        const shouldReload = globalThis.window.confirm(
+          "Changing the particle amount will reload the page. Continue?"
+        );
+        if (shouldReload) {
+          try {
+            const url = new URL(globalThis.window.location.href);
+            url.searchParams.set("amount", sim.amount);
+            globalThis.window.location.href = url.toString();
+          } catch {
+            // Fallback: just reload
+            globalThis.window.location.reload();
+          }
+          return; // prevent further updates; page will reload
+        }
+      }
+      // Fallback: no window available, update store only
       s.setAmount(sim.amount);
     }
     const simUpdates: Array<[keyof SceneSettings, unknown, unknown]> = [

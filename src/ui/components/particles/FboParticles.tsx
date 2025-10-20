@@ -369,6 +369,17 @@ export default function FboParticles(props: Readonly<Props>) {
     }
   }, [flipRatio, mode]);
 
+  // Scale motion blur multiplier by triangle size for triangles mode
+  React.useEffect(() => {
+    if (mode !== "triangles") return;
+    if (motionMatRef.current && motionMatRef.current.uniforms.u_motionMultiplier) {
+      // Heuristic: base 1.0 at size 2.5, scale proportionally
+      const base = 2.5;
+      const scale = triangleSize / base;
+      (motionMatRef.current.uniforms.u_motionMultiplier as THREE.IUniform<number>).value = scale;
+    }
+  }, [triangleSize, mode]);
+
   // Attach legacy motion material to object for MotionBlur effect
   React.useEffect(() => {
     type MotionAttachable = { motionMaterial?: THREE.Material };
