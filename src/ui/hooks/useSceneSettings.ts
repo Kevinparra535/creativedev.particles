@@ -11,6 +11,7 @@ export type SceneSettings = {
   radius: number;
   curlSize: number;
   attraction: number;
+  flipRatio: number;
   shadowDarkness: number;
   bgColor: string;
   color1: string;
@@ -40,6 +41,7 @@ export const useSceneSettings = create<SceneSettings>((set) => {
     radius,
     curlSize: DefaultSettings.curlSize,
     attraction: DefaultSettings.attraction,
+    flipRatio: 0,
     shadowDarkness: DefaultSettings.shadowDarkness,
     bgColor: DefaultSettings.bgColor,
     color1: DefaultSettings.color1,
