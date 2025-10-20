@@ -41,7 +41,15 @@ const Scene1 = () => {
         color1={s.color1}
         color2={s.color2}
       />
-      <OrbitControls enableDamping={true} dampingFactor={0.1} />
+      <OrbitControls
+        enableDamping={true}
+        dampingFactor={0.1}
+        maxDistance={1000}
+        minPolarAngle={0.3}
+        maxPolarAngle={Math.PI / 2 - 0.1}
+        enablePan={false}
+        target={[0, 50, 0]}
+      />
     </>
   );
 };
