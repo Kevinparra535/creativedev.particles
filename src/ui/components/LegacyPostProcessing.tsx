@@ -2,8 +2,9 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import PostProcessing from "../../postprocessing/PostProcessing";
 import * as fboHelper from "../../utils/fboHelper";
-import DefaultSettings from "../../config/settings.config";
-import { motionBlurQualityMap } from "../../config/settings.config";
+import DefaultSettings, {
+  motionBlurQualityMap,
+} from "../../config/settings.config";
 
 /**
  * Legacy PostProcessing integration for React Three Fiber

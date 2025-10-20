@@ -46,8 +46,8 @@ export function init(renderer: THREE.WebGLRenderer): void {
 
   _renderer = renderer;
 
-  // En GLSL3 ya no necesitamos prefijo, pero lo dejamos como valor válido por compatibilidad
-  _rawShaderPrefix = rawShaderPrefix = "precision highp float;\n";
+  rawShaderPrefix =
+    "precision " + _renderer.capabilities.precision + " float;\n";
 
   _scene = new THREE.Scene();
   _camera = new THREE.Camera();
@@ -55,36 +55,32 @@ export function init(renderer: THREE.WebGLRenderer): void {
 
   // === Shaders GLSL3 (sin #version: Three la inyecta al compilar con glslVersion: THREE.GLSL3) ===
   const COPY_VERT_GLSL3 = glsl`
-    precision highp float;
+precision highp float;
 
-    in vec3 position;
-    in vec2 uv;
-    out vec2 v_uv;
+in vec3 position;
+in vec2 uv;
 
-    void main() {
-      v_uv = uv;
-      gl_Position = vec4(position, 1.0);
-    }
+out vec2 v_uv;
+
+void main() {
+    v_uv = uv;
+    gl_Position = vec4(position, 1.0);
+}
+
   `;
 
   const COPY_FRAG_GLSL3 = glsl`
-    // FRAGMENT GLSL3 — composite líneas (reemplaza el que muestra el log)
-    precision highp float;
+precision highp float;
 
-    uniform sampler2D u_texture;
-    uniform sampler2D u_linesTexture;
-    uniform float u_lineAlphaMultiplier;
+uniform sampler2D u_texture;
 
-    in vec2 v_uv;
-    out vec4 outColor;
+in vec2 v_uv;        // reemplaza 'varying' → 'in'
+out vec4 outColor;   // reemplaza gl_FragColor → outColor
 
-    void main() {
-      vec3 base  = texture(u_texture, v_uv).rgb;
-      vec4 lines = texture(u_linesTexture, v_uv);
-      vec3 color = (base + lines.rgb * u_lineAlphaMultiplier)
-                / (lines.a * u_lineAlphaMultiplier + 1.0);
-      outColor = vec4(color, 1.0);
-    }
+void main() {
+    outColor = texture(u_texture, v_uv); // reemplaza texture2D → texture
+}
+
   `;
 
   // Guardamos para getVertexShader() / legacy

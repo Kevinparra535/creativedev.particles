@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
-import Scene1 from "../scenes/lowQuality/Scene1";
+import Scene1 from "../scenes/Scene1";
 import DefaultSettings from "../../config/settings.config";
 import LegacyPostProcessing from "./LegacyPostProcessing";
 import LegacyFogAndClearColor from "../../legacy/LegacyFogAndClearColor";
