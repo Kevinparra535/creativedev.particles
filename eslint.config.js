@@ -6,7 +6,14 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'src/ui/components/FBOParticles.tsx', 'src/utils/performanceTest.ts', 'src/materials/postprocessing/**']),
+  globalIgnores([
+    'dist',
+    'src/ui/components/FBOParticles.tsx',
+    'src/utils/performanceTest.ts',
+    'src/materials/postprocessing/**',
+    'src/legacy/**',
+    'src/postprocessing/**',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

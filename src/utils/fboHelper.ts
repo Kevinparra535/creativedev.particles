@@ -30,13 +30,19 @@ let _mesh: THREE.Mesh | null = null;
 let _copyMaterial: THREE.RawShaderMaterial | null = null;
 
 // Mantengo estas dos por compatibilidad (aunque ya no se usan para prefijar)
-let _rawShaderPrefix = "";
+const _rawShaderPrefix = "";
 let _vertexShader = "";
 
-// === Exports legacy (mutables) ===
-export let rawShaderPrefix = "";
-export let vertexShader = "";
-export let copyMaterial: THREE.RawShaderMaterial | null = null;
+// === Exposed accessors (legacy names via getters) ===
+let _rawPrefixPublic = "";
+let _vertexShaderPublic = "";
+let _copyMaterialPublic: THREE.RawShaderMaterial | null = null;
+
+export const rawShaderPrefix = (() => _rawPrefixPublic)();
+export const vertexShader = (() => _vertexShaderPublic)();
+export function getCopyMaterialPublic() {
+  return _copyMaterialPublic;
+}
 
 /**
  * Init (legacy signature)
@@ -46,12 +52,12 @@ export function init(renderer: THREE.WebGLRenderer): void {
 
   _renderer = renderer;
 
-  rawShaderPrefix =
+  _rawPrefixPublic =
     "precision " + _renderer.capabilities.precision + " float;\n";
 
   _scene = new THREE.Scene();
   _camera = new THREE.Camera();
-  (_camera.position as any).z = 1;
+  _camera.position.setZ(1);
 
   // === Shaders GLSL3 (sin #version: Three la inyecta al compilar con glslVersion: THREE.GLSL3) ===
   const COPY_VERT_GLSL3 = glsl`
@@ -84,9 +90,10 @@ void main() {
   `;
 
   // Guardamos para getVertexShader() / legacy
-  _vertexShader = vertexShader = COPY_VERT_GLSL3;
+  _vertexShader = COPY_VERT_GLSL3;
+  _vertexShaderPublic = COPY_VERT_GLSL3;
 
-  _copyMaterial = copyMaterial = new THREE.RawShaderMaterial({
+  _copyMaterial = new THREE.RawShaderMaterial({
     uniforms: {
       u_texture: { value: null as unknown as THREE.Texture },
     },
@@ -98,6 +105,7 @@ void main() {
     blending: THREE.NoBlending,
     transparent: false,
   });
+  _copyMaterialPublic = _copyMaterial;
 
   _mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _copyMaterial);
   _scene.add(_mesh);
@@ -117,9 +125,9 @@ export function copy(
   inputTexture: THREE.Texture,
   ouputTexture?: THREE.WebGLRenderTarget
 ): void {
-  if (!_renderer || !_scene || !_camera || !copyMaterial || !_mesh) return;
-  _mesh.material = copyMaterial;
-  copyMaterial.uniforms.u_texture.value = inputTexture;
+  if (!_renderer || !_scene || !_camera || !_copyMaterial || !_mesh) return;
+  _mesh.material = _copyMaterial;
+  _copyMaterial.uniforms.u_texture.value = inputTexture;
 
   if (ouputTexture) {
     _renderer.setRenderTarget(ouputTexture);

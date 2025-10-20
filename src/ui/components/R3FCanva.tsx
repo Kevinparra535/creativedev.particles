@@ -3,8 +3,8 @@ import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
 import Scene1 from "../scenes/Scene1";
 import DefaultSettings from "../../config/settings.config";
-import LegacyPostProcessing from "./LegacyPostProcessing";
-import LegacyFogAndClearColor from "../../legacy/LegacyFogAndClearColor";
+import PostFX from "./PostFX";
+import { useSceneSettings } from "../hooks/useSceneSettings";
 
 // Componente principal con controles de color
 const R3FCanva = () => {
@@ -13,6 +13,7 @@ const R3FCanva = () => {
     .normalize()
     .multiplyScalar(1000);
 
+  const s = useSceneSettings();
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
       <Canvas
@@ -25,8 +26,14 @@ const R3FCanva = () => {
           gl.shadowMap.type = THREE.PCFSoftShadowMap;
         }}
       >
-        <color attach="background" args={[DefaultSettings.bgColor]} />
-        <fogExp2 attach="fog" args={[DefaultSettings.bgColor, 0.001]} />
+        <color
+          attach="background"
+          args={[s.bgColor || DefaultSettings.bgColor]}
+        />
+        <fogExp2
+          attach="fog"
+          args={[s.bgColor || DefaultSettings.bgColor, 0.001]}
+        />
 
         <PerspectiveCamera
           makeDefault
@@ -37,8 +44,7 @@ const R3FCanva = () => {
         />
 
         <Scene1 />
-        <LegacyFogAndClearColor />
-        <LegacyPostProcessing />
+        <PostFX enabled={s.fxaa || s.bloom} />
       </Canvas>
     </div>
   );

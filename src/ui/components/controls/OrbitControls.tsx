@@ -14,6 +14,8 @@ export type OrbitControlsProps = {
   enablePan?: boolean;
   enableZoom?: boolean;
   enableRotate?: boolean;
+  enableDamping?: boolean;
+  dampingFactor?: number;
 };
 
 // Wrapper to mirror the legacy OrbitControls API names to drei props
@@ -30,6 +32,8 @@ const OrbitControls: React.FC<OrbitControlsProps> = ({
   enablePan = true,
   enableZoom = true,
   enableRotate = true,
+  enableDamping = true,
+  dampingFactor = 0.1,
 }) => {
   return (
     <DreiOrbitControls
@@ -45,6 +49,8 @@ const OrbitControls: React.FC<OrbitControlsProps> = ({
       enablePan={enablePan}
       enableZoom={enableZoom}
       enableRotate={enableRotate}
+      enableDamping={enableDamping}
+      dampingFactor={dampingFactor}
       makeDefault
     />
   );

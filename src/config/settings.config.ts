@@ -1,5 +1,6 @@
 // Typed reinterpretation of The-Spirit legacy settings.js
 // Provides strong types, defaults, and URL param parsing.
+import type { Vector2, Vector3 } from "three";
 
 export type AmountKey =
   | "4k"
@@ -77,8 +78,8 @@ export interface SettingsConfig {
   bloom: boolean; // true
 
   // Legacy compatibility - mouse tracking
-  mouse?: any; // THREE.Vector2 - set at runtime
-  mouse3d?: any; // THREE.Vector3 - set at runtime
+  mouse?: Vector2; // set at runtime
+  mouse3d?: Vector3; // set at runtime
 }
 
 function getIsMobile(ua: string): boolean {
@@ -87,11 +88,9 @@ function getIsMobile(ua: string): boolean {
 
 // Parses a URL like legacy's settings.js but using URLSearchParams.
 export function getInitialSettings(url?: string, ua?: string): SettingsConfig {
-  const hasWindow = (globalThis as any)?.window !== undefined;
+  const hasWindow = typeof window !== "undefined";
 
-  const w: Window | undefined = hasWindow
-    ? ((globalThis as any).window as Window)
-    : undefined;
+  const w: Window | undefined = hasWindow ? window : undefined;
 
   // Merge search and hash params with hash taking precedence (legacy behavior)
   const href = w ? w.location.href : url || "";
