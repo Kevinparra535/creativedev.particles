@@ -7,8 +7,11 @@ import {
   particlesFragmentShader,
   particlesVertexShader,
   trianglesVertexShader,
+  particlesMotionVertexShader,
+  trianglesMotionShader,
 } from "../../../glsl/particlesShaders";
 import { createPingPong } from "../../../utils/fboHelper";
+import MeshMotionMaterial from "../../../postprocessing/motionBlur/MeshMotionMaterial";
 
 type Props = {
   size?: number; // square fallback
@@ -165,6 +168,8 @@ export default function FboParticles(props: Readonly<Props>) {
   const matRef = React.useRef<THREE.ShaderMaterial | null>(null);
   const pointsRef = React.useRef<THREE.Points | null>(null);
   const meshRef = React.useRef<THREE.Mesh | null>(null);
+  const motionMatRef = React.useRef<MeshMotionMaterial | null>(null);
+  const prevTexRef = React.useRef<THREE.Texture | null>(null);
 
   // Time and init animation
   const startTime = React.useRef<number>(performance.now());
@@ -271,6 +276,18 @@ export default function FboParticles(props: Readonly<Props>) {
         blending: THREE.AdditiveBlending,
         glslVersion: THREE.GLSL3,
       });
+
+      // Motion material for points
+      motionMatRef.current = new MeshMotionMaterial({
+        vertexShader: particlesMotionVertexShader,
+        depthTest: true,
+        depthWrite: true,
+        blending: THREE.NoBlending,
+        uniforms: {
+          texturePosition: { value: null as any },
+          texturePrevPosition: { value: null as any },
+        },
+      });
     } else {
       geoRef.current = buildTrianglesGeometry(w, h, triangleSize);
       matRef.current = new THREE.ShaderMaterial({
@@ -287,6 +304,19 @@ export default function FboParticles(props: Readonly<Props>) {
         blending: THREE.AdditiveBlending,
         glslVersion: THREE.GLSL3,
       });
+
+      // Motion material for triangles
+      motionMatRef.current = new MeshMotionMaterial({
+        vertexShader: trianglesMotionShader,
+        depthTest: true,
+        depthWrite: true,
+        blending: THREE.NoBlending,
+        uniforms: {
+          texturePosition: { value: null as any },
+          texturePrevPosition: { value: null as any },
+          flipRatio: { value: flipRatio },
+        },
+      });
     }
 
     return () => {
@@ -295,6 +325,7 @@ export default function FboParticles(props: Readonly<Props>) {
       defaultRTRef.current?.dispose();
       geoRef.current?.dispose();
       matRef.current?.dispose();
+      motionMatRef.current?.dispose();
       initMatRef.current?.dispose();
       simMatRef.current?.dispose();
       simMeshRef.current?.geometry.dispose();
@@ -311,6 +342,19 @@ export default function FboParticles(props: Readonly<Props>) {
     curlSize,
     attraction,
   ]);
+
+  // Attach legacy motion material to object for MotionBlur effect
+  React.useEffect(() => {
+    const obj = (
+      mode === "points" ? pointsRef.current : meshRef.current
+    ) as any;
+    if (obj && motionMatRef.current) {
+      obj.motionMaterial = motionMatRef.current;
+    }
+    return () => {
+      if (obj) obj.motionMaterial = undefined;
+    };
+  }, [mode]);
 
   // React to color changes at runtime
   React.useEffect(() => {
@@ -376,10 +420,24 @@ export default function FboParticles(props: Readonly<Props>) {
 
     // Update draw material
     if (matRef.current) {
-      matRef.current.uniforms.texturePosition.value = pingpong.read().texture;
+      const currentTex = pingpong.read().texture;
+      matRef.current.uniforms.texturePosition.value = currentTex;
       if (mode === "triangles") {
         matRef.current.uniforms.flipRatio.value = flipRatio;
       }
+    }
+
+    // Update motion material uniforms for legacy motion blur
+    if (motionMatRef.current) {
+      const currentTex = pingpong.read().texture;
+      motionMatRef.current.uniforms.texturePosition.value = currentTex;
+      motionMatRef.current.uniforms.texturePrevPosition.value =
+        prevTexRef.current ?? currentTex;
+      if (mode === "triangles") {
+        motionMatRef.current.uniforms.flipRatio.value = flipRatio;
+      }
+      // After using, remember current as previous
+      prevTexRef.current = currentTex;
     }
   });
 

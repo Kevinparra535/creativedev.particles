@@ -1,7 +1,7 @@
 import glsl from "glslify";
 import Effect from "../Effect";
 import * as THREE from "three";
-import * as effectComposer from "../EffectComposer";
+import effectComposer from "../EffectComposer";
 import * as fboHelper from "../../utils/fboHelper";
 
 /**
@@ -36,7 +36,8 @@ export default class BloomEffect extends Effect {
         u_delta: { value: new THREE.Vector2() },
       },
       vertexShader: fboHelper.getVertexShader(),
-      fragmentShader: fboHelper.getRawShaderPrefix() + this.getBloomBlurShader(),
+      fragmentShader:
+        fboHelper.getRawShaderPrefix() + this.getBloomBlurShader(),
     });
   }
 
@@ -109,9 +110,13 @@ export default class BloomEffect extends Effect {
     if (!this.blurMaterial) return;
 
     // Get render targets exactly like legacy
-    const tmpRenderTarget1 = effectComposer.getRenderTarget(this.BLUR_BIT_SHIFT);
-    const tmpRenderTarget2 = effectComposer.getRenderTarget(this.BLUR_BIT_SHIFT);
-    
+    const tmpRenderTarget1 = effectComposer.getRenderTarget(
+      this.BLUR_BIT_SHIFT
+    );
+    const tmpRenderTarget2 = effectComposer.getRenderTarget(
+      this.BLUR_BIT_SHIFT
+    );
+
     // Release them first (legacy pattern)
     effectComposer.releaseRenderTarget(tmpRenderTarget1, tmpRenderTarget2);
 
@@ -124,7 +129,7 @@ export default class BloomEffect extends Effect {
     );
     fboHelper.render(this.blurMaterial, tmpRenderTarget1);
 
-    // Vertical blur pass  
+    // Vertical blur pass
     this.blurMaterial.uniforms.u_texture.value = tmpRenderTarget1.texture;
     this.blurMaterial.uniforms.u_delta.value.set(
       0,

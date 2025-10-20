@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import Effect from "../Effect";
-import * as effectComposer from "../EffectComposer";
+import effectComposer from "../EffectComposer";
 import * as fboHelper from "../../utils/fboHelper";
 import glsl from "glslify";
 
@@ -84,7 +84,7 @@ export default class MotionBlurEffect extends Effect {
     );
 
     this.linesCamera = new THREE.Camera();
-    this.linesCamera.position.z = 1.0;
+    this.linesCamera.position.z = 1;
     this.linesScene = new THREE.Scene();
 
     // Initialize main effect like legacy
@@ -164,7 +164,7 @@ export default class MotionBlurEffect extends Effect {
    * Resize method like legacy
    */
   resize(width?: number, height?: number) {
-    if (!width) {
+    if (width === undefined || height === undefined) {
       width = this.width;
       height = this.height;
     } else {
@@ -172,17 +172,17 @@ export default class MotionBlurEffect extends Effect {
       this.height = height;
     }
 
-    if (!width || !height) return;
+    if (width === undefined || height === undefined) return;
 
     // Resize motion render target like legacy
-    const motionWidth = ~~(width * this.motionRenderTargetScale);
-    const motionHeight = ~~(height * this.motionRenderTargetScale);
+    const motionWidth = Math.trunc(width * this.motionRenderTargetScale);
+    const motionHeight = Math.trunc(height * this.motionRenderTargetScale);
     this.motionRenderTarget?.setSize(motionWidth, motionHeight);
 
     if (!this.useSampling) {
       // Resize lines render target like legacy
-      const linesWidth = ~~(width * this.linesRenderTargetScale);
-      const linesHeight = ~~(height * this.linesRenderTargetScale);
+      const linesWidth = Math.trunc(width * this.linesRenderTargetScale);
+      const linesHeight = Math.trunc(height * this.linesRenderTargetScale);
       this.linesRenderTarget?.setSize(linesWidth, linesHeight);
 
       // Update lines positions like legacy
@@ -209,7 +209,7 @@ export default class MotionBlurEffect extends Effect {
       const size = linesWidth * linesHeight;
       for (let i = 0; i < size; i++) {
         const x = i % linesWidth;
-        const y = ~~(i / linesWidth);
+        const y = Math.trunc(i / linesWidth);
         if (noDithering || (x + (y & 1)) & 1) {
           this.linesPositions![i6 + 0] = this.linesPositions![i6 + 3] =
             (x + 0.5) / linesWidth;
@@ -243,27 +243,28 @@ export default class MotionBlurEffect extends Effect {
    * Custom render method exactly like legacy
    */
   render(dt: number, renderTarget: THREE.WebGLRenderTarget, toScreen: boolean) {
-    if (this.prevUseDithering !== this.useDithering) {
-      this.resize();
-    } else if (this.prevUseSampling !== this.useSampling) {
+    if (
+      this.prevUseDithering !== this.useDithering ||
+      this.prevUseSampling !== this.useSampling
+    ) {
       this.resize();
     }
 
     const useSampling = this.useSampling;
-    const fpsRatio = 1000 / (dt < 16.667 ? 16.667 : dt) / this.targetFPS;
+    const fpsRatio = 1000 / Math.max(16.667, dt) / this.targetFPS;
 
     // Render motion vectors like legacy
     const state = fboHelper.getColorState();
-    effectComposer.renderer!.setClearColor(0, 1);
-    effectComposer.renderer!.setRenderTarget(this.motionRenderTarget!);
-    effectComposer.renderer!.clear(true, true);
+    effectComposer.renderer.setClearColor(0, 1);
+    effectComposer.renderer.setRenderTarget(this.motionRenderTarget!);
+    effectComposer.renderer.clear(true, true);
 
     // Set motion materials like legacy
     if (effectComposer.scene) {
       effectComposer.scene.traverseVisible((obj: any) =>
         this.setObjectBeforeState(obj)
       );
-      effectComposer.renderScene(this.motionRenderTarget!);
+      effectComposer.renderScene(this.motionRenderTarget);
 
       for (let i = 0, len = this.visibleCache.length; i < len; i++) {
         this.setObjectAfterState(this.visibleCache[i]);
@@ -290,10 +291,10 @@ export default class MotionBlurEffect extends Effect {
       );
       this.linesMaterial!.uniforms.u_texture.value = renderTarget.texture;
 
-      effectComposer.renderer!.setClearColor(0, 0);
-      effectComposer.renderer!.setRenderTarget(this.linesRenderTarget!);
-      effectComposer.renderer!.clear(true, true);
-      effectComposer.renderer!.render(this.linesScene!, this.linesCamera!);
+      effectComposer.renderer.setClearColor(0, 0);
+      effectComposer.renderer.setRenderTarget(this.linesRenderTarget!);
+      effectComposer.renderer.clear(true, true);
+      effectComposer.renderer.render(this.linesScene!, this.linesCamera!);
     }
 
     fboHelper.setColorState(state);
@@ -359,7 +360,7 @@ export default class MotionBlurEffect extends Effect {
    */
   setQuality(quality: "best" | "high" | "medium" | "low") {
     const qualityMap = {
-      best: 1.0,
+      best: 1,
       high: 0.75,
       medium: 0.5,
       low: 0.25,
