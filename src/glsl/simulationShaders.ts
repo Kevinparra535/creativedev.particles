@@ -31,6 +31,7 @@ uniform float curlSize;
 uniform float attraction;
 uniform float initAnimation;
 uniform vec3 mouse3d;
+uniform float followMouse; // 1.0 when enabled, 0.0 when disabled
 
 out vec4 outColor;
 
@@ -43,7 +44,12 @@ void main() {
   vec3 position = mix(vec3(0.0, -200.0, 0.0), positionInfo.xyz, smoothstep(0.0, 0.3, initAnimation));
   float life = positionInfo.a - dieSpeed;
 
-  vec3 followPosition = mix(vec3(0.0, -(1.0 - initAnimation) * 200.0, 0.0), mouse3d, smoothstep(0.2, 0.7, initAnimation));
+  // Base position during init animation
+  vec3 baseFollow = vec3(0.0, -(1.0 - initAnimation) * 200.0, 0.0);
+  float t = smoothstep(0.2, 0.7, initAnimation);
+  // When followMouse=0.0, use baseFollow; when 1.0, allow blending towards mouse
+  vec3 targetFollow = mix(baseFollow, mouse3d, t);
+  vec3 followPosition = mix(baseFollow, targetFollow, followMouse);
 
   if (life < 0.0) {
     positionInfo = texture(textureDefaultPosition, uv);

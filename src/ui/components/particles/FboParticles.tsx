@@ -246,6 +246,7 @@ export default function FboParticles(props: Readonly<Props>) {
         attraction: { value: attraction },
         initAnimation: { value: 0 },
         mouse3d: { value: new THREE.Vector3() },
+        followMouse: { value: followMouse ? 1 : 0 },
       },
       glslVersion: THREE.GLSL3,
       depthWrite: false,
@@ -444,8 +445,9 @@ export default function FboParticles(props: Readonly<Props>) {
     simMat.uniforms.speed.value = speed;
     simMat.uniforms.dieSpeed.value = dieSpeed;
     simMat.uniforms.radius.value = radius;
-    simMat.uniforms.curlSize.value = curlSize;
-    simMat.uniforms.attraction.value = followMouse ? attraction : 0;
+  simMat.uniforms.curlSize.value = curlSize;
+  simMat.uniforms.attraction.value = followMouse ? attraction : 0;
+  simMat.uniforms.followMouse.value = followMouse ? 1 : 0;
     simMat.uniforms.texturePosition.value = read.texture;
     simMat.uniforms.textureDefaultPosition.value =
       defaultRTRef.current?.texture ?? null;
