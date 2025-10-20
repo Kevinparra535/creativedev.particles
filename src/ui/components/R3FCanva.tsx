@@ -3,7 +3,6 @@ import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
 import Scene1 from "../scenes/Scene1";
 import DefaultSettings from "../../config/settings.config";
-import PostFX from "./PostFX";
 import LegacyPostProcessing from "./LegacyPostProcessing";
 import { useSceneSettings } from "../hooks/useSceneSettings";
 
@@ -45,13 +44,8 @@ const R3FCanva = () => {
         />
 
         <Scene1 />
-        {/* Use legacy postprocessing to match JS visuals exactly */}
-        {s.motionBlur ? (
-          <LegacyPostProcessing />
-        ) : (
-          // Optional lightweight post-fx for FXAA/Bloom if not using motion blur
-          <PostFX enabled={s.fxaa || s.bloom} />
-        )}
+        {/* Always use legacy postprocessing to match JS visuals exactly */}
+        <LegacyPostProcessing />
       </Canvas>
     </div>
   );

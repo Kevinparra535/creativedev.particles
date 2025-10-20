@@ -223,7 +223,7 @@ export default function ControlsPanel() {
       }
     }
 
-    // Post-processing updates
+  // Post-processing updates (legacy allows independent toggles)
     const postUpdates: Array<[keyof SceneSettings, unknown, unknown]> = [
       ["fxaa", post.fxaa, fxaa],
       ["bloom", post.bloom, bloom],
