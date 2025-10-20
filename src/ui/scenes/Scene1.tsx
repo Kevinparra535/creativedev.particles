@@ -8,7 +8,9 @@ import Floor from "../components/scene/Floor";
 
 const Scene1 = () => {
   const s = useSceneSettings();
-  const mode: "triangles" | "points" = s.useTriangleParticles ? "triangles" : "points";
+  const mode: "triangles" | "points" = s.useTriangleParticles
+    ? "triangles"
+    : "points";
   useEffect(() => {
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.code === "Space") {
@@ -39,7 +41,7 @@ const Scene1 = () => {
         color1={s.color1}
         color2={s.color2}
       />
-  <OrbitControls enableDamping={true} dampingFactor={0.1} />
+      <OrbitControls enableDamping={true} dampingFactor={0.1} />
     </>
   );
 };

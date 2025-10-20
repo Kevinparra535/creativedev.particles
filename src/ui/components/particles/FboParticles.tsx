@@ -470,7 +470,9 @@ export default function FboParticles(props: Readonly<Props>) {
     simMat.uniforms.dieSpeed.value = dieSpeed;
     simMat.uniforms.radius.value = radius;
   simMat.uniforms.curlSize.value = curlSize;
-  simMat.uniforms.attraction.value = followMouse ? attraction : 0;
+  // Keep attraction active even when followMouse is off; shader chooses target
+  // between baseFollow and mouse via followMouse uniform.
+  simMat.uniforms.attraction.value = attraction;
   simMat.uniforms.followMouse.value = followMouse ? 1 : 0;
     simMat.uniforms.texturePosition.value = read.texture;
     simMat.uniforms.textureDefaultPosition.value =

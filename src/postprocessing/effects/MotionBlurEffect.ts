@@ -116,10 +116,9 @@ export default class MotionBlurEffect extends Effect {
         u_leaning: { value: 0.5 },
         u_depthBias: { value: 0.01 },
       },
-      vertexShader:
-        fboHelper.getRawShaderPrefix() + this.getMotionBlurLinesVertexShader(),
-      fragmentShader:
-        fboHelper.getRawShaderPrefix() + this.getMotionBlurLinesFragShader(),
+      vertexShader: this.getMotionBlurLinesVertexShader(),
+      fragmentShader: this.getMotionBlurLinesFragShader(),
+      glslVersion: THREE.GLSL3,
 
       blending: THREE.CustomBlending,
       blendEquation: THREE.AddEquation,

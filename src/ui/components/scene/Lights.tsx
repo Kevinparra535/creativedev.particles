@@ -10,7 +10,11 @@ export default function Lights() {
   return (
     <>
       <hemisphereLight args={[hemi, new THREE.Color(0x222233), 0.6]} />
-      <directionalLight position={[200, 300, 100]} intensity={dirIntensity} castShadow />
+      <directionalLight
+        position={[200, 300, 100]}
+        intensity={dirIntensity}
+        castShadow
+      />
       <ambientLight intensity={ambIntensity} />
     </>
   );

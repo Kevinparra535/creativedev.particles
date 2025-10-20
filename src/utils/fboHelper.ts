@@ -92,17 +92,16 @@ export function init(renderer: THREE.WebGLRenderer): void {
   _vertexShaderPublic = COPY_VERT_GLSL3;
 
   _copyMaterial = new THREE.RawShaderMaterial({
-    uniforms: {
-      u_texture: { value: null as unknown as THREE.Texture },
-    },
+    uniforms: { u_texture: { value: null as unknown as THREE.Texture } },
     vertexShader: COPY_VERT_GLSL3,
     fragmentShader: COPY_FRAG_GLSL3,
-    glslVersion: THREE.GLSL3, // 👈 importante para GLSL3
+    glslVersion: THREE.GLSL3, // 👈 imprescindible
     depthWrite: false,
     depthTest: false,
     blending: THREE.NoBlending,
     transparent: false,
   });
+
   _copyMaterialPublic = _copyMaterial;
 
   _mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _copyMaterial);
