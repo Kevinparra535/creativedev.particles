@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import * as fboHelper from "../utils/fboHelper";
+import effectComposer from "./EffectComposer";
 
 /**
  * Legacy-compatible Effect base class for postprocessing effects
@@ -41,6 +42,7 @@ export default class Effect {
       fragmentShader: "",
       isRawMaterial: true,
       addRawShaderPrefix: true,
+      glslVersion: THREE.GLSL3,
       ...cfg,
     });
 
@@ -81,6 +83,8 @@ export default class Effect {
       uniforms: this.uniforms,
       vertexShader,
       fragmentShader,
+      // Ensure GLSL3 so we can use in/out and layout qualifiers in shaders
+      glslVersion: THREE.GLSL3,
     });
   }
 
@@ -112,7 +116,7 @@ export default class Effect {
   ) {
     if (!this.enabled || !this.material) return;
 
-    // Set input texture from render target
+    // Set input texture from render target (ping-pong input)
     if (fromRenderTarget && this.uniforms.u_texture) {
       this.uniforms.u_texture.value = fromRenderTarget.texture;
     }
@@ -120,9 +124,9 @@ export default class Effect {
     // Store render context for subclasses to use
     this.lastRenderContext = { dt, fromRenderTarget, toScreen };
 
-    // Default implementation: render using fboHelper
-    // Both screen and render target cases use the same rendering approach
-    fboHelper.render(this.material);
+    // Route rendering through the EffectComposer to preserve the legacy
+    // ping-pong chain and only draw to screen on the last pass.
+    effectComposer.render(this.material, !!toScreen);
   }
 
   // Store last render context for effects that need it
