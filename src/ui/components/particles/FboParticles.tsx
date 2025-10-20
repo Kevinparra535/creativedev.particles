@@ -262,7 +262,37 @@ export default function FboParticles(props: Readonly<Props>) {
       gl.setRenderTarget(null);
     }
 
-    // Build draw geometry and material
+    // Note: draw geometry/material are now created in a separate effect on mode change
+
+    return () => {
+      // Dispose
+      pingpongRef.current?.dispose();
+      defaultRTRef.current?.dispose();
+      // Draw resources disposed in draw effect cleanup
+      initMatRef.current?.dispose();
+      simMatRef.current?.dispose();
+      simMeshRef.current?.geometry.dispose();
+    };
+  }, [
+    gl,
+    size,
+    resolution,
+    color1,
+    color2,
+    speed,
+    dieSpeed,
+    radius,
+    curlSize,
+    attraction,
+  ]);
+
+  // Build draw geometry/material on mode or parameter change
+  React.useEffect(() => {
+    // Dispose previous
+    geoRef.current?.dispose();
+    matRef.current?.dispose();
+    motionMatRef.current?.dispose();
+
     if (mode === "points") {
       geoRef.current = buildLookupGeometry(w, h);
       matRef.current = new THREE.ShaderMaterial({
@@ -280,7 +310,6 @@ export default function FboParticles(props: Readonly<Props>) {
         glslVersion: THREE.GLSL3,
       });
 
-      // Motion material for points
       motionMatRef.current = new MeshMotionMaterial({
         vertexShader: particlesMotionVertexShader,
         depthTest: true,
@@ -308,7 +337,6 @@ export default function FboParticles(props: Readonly<Props>) {
         glslVersion: THREE.GLSL3,
       });
 
-      // Motion material for triangles
       motionMatRef.current = new MeshMotionMaterial({
         vertexShader: trianglesMotionShader,
         depthTest: true,
@@ -322,29 +350,25 @@ export default function FboParticles(props: Readonly<Props>) {
       });
     }
 
+    // If object already exists, update its material reference for motion blur
+    const obj =
+      mode === "points"
+        ? (pointsRef.current as unknown as { motionMaterial?: THREE.Material } | null)
+        : (meshRef.current as unknown as { motionMaterial?: THREE.Material } | null);
+    if (obj && motionMatRef.current) obj.motionMaterial = motionMatRef.current;
+
     return () => {
-      // Dispose
-      pingpongRef.current?.dispose();
-      defaultRTRef.current?.dispose();
-      geoRef.current?.dispose();
-      matRef.current?.dispose();
+      // Clean up draw resources on param change
+      const obj2 =
+        mode === "points"
+          ? (pointsRef.current as unknown as { motionMaterial?: THREE.Material } | null)
+          : (meshRef.current as unknown as { motionMaterial?: THREE.Material } | null);
+      if (obj2) obj2.motionMaterial = undefined;
       motionMatRef.current?.dispose();
-      initMatRef.current?.dispose();
-      simMatRef.current?.dispose();
-      simMeshRef.current?.geometry.dispose();
+      matRef.current?.dispose();
+      geoRef.current?.dispose();
     };
-  }, [
-    gl,
-    size,
-    resolution,
-    color1,
-    color2,
-    speed,
-    dieSpeed,
-    radius,
-    curlSize,
-    attraction,
-  ]);
+  }, [mode, w, h, color1, color2, flipRatio, triangleSize]);
 
   // Rebuild triangles geometry if size changes at runtime
   React.useEffect(() => {
