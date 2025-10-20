@@ -33,6 +33,7 @@ const Scene1 = () => {
         dieSpeed={s.dieSpeed}
         curlSize={s.curlSize}
         attraction={s.attraction}
+        followMouse={s.followMouse}
         flipRatio={s.flipRatio}
         color1={s.color1}
         color2={s.color2}

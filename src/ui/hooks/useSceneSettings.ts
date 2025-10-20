@@ -20,6 +20,11 @@ export type SceneSettings = {
   bloom: boolean;
   motionBlur: boolean;
   motionBlurQuality: "best" | "high" | "medium" | "low";
+  // Post params
+  motionBlurMaxDistance: number;
+  motionBlurMultiplier: number;
+  bloomRadius: number;
+  bloomAmount: number;
 
   // derived
   cols: number;
@@ -50,6 +55,10 @@ export const useSceneSettings = create<SceneSettings>((set) => {
     bloom: DefaultSettings.bloom,
     motionBlur: DefaultSettings.motionBlur,
     motionBlurQuality: DefaultSettings.motionBlurQuality,
+    motionBlurMaxDistance: 120,
+    motionBlurMultiplier: 7,
+    bloomRadius: 1.3,
+    bloomAmount: 0.3,
 
     cols,
     rows,

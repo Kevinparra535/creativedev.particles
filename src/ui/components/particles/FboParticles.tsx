@@ -21,6 +21,7 @@ type Props = {
   color2?: THREE.ColorRepresentation;
   radius?: number;
   attraction?: number;
+  followMouse?: boolean;
   curlSize?: number;
   speed?: number;
   dieSpeed?: number;
@@ -138,6 +139,7 @@ export default function FboParticles(props: Readonly<Props>) {
     color2 = new THREE.Color(0.2, 0.6, 1),
     radius = 300,
     attraction = 0.6,
+  followMouse = true,
     curlSize = 0.015,
     speed = 1,
     dieSpeed = 0.003,
@@ -402,7 +404,7 @@ export default function FboParticles(props: Readonly<Props>) {
     simMat.uniforms.dieSpeed.value = dieSpeed;
     simMat.uniforms.radius.value = radius;
     simMat.uniforms.curlSize.value = curlSize;
-    simMat.uniforms.attraction.value = attraction;
+  simMat.uniforms.attraction.value = followMouse ? attraction : 0;
     simMat.uniforms.texturePosition.value = read.texture;
     simMat.uniforms.textureDefaultPosition.value =
       defaultRTRef.current?.texture ?? null;
