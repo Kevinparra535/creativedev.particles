@@ -1,16 +1,53 @@
 import { useControls } from "leva";
 import { useEffect } from "react";
 import { useSceneSettings } from "../hooks/useSceneSettings";
-import { amountList, motionBlurQualityList } from "../../config/settings.config";
+import {
+  amountList,
+  motionBlurQualityList,
+} from "../../config/settings.config";
+import type { AmountKey } from "../../config/settings.config";
+import type { SceneSettings } from "../hooks/useSceneSettings";
 
 export default function ControlsPanel() {
   const s = useSceneSettings();
-  const { amount, useTriangleParticles, speed, dieSpeed, radius, curlSize, attraction, followMouse, flipRatio, shadowDarkness, bgColor, color1, color2, fxaa, bloom, bloomRadius, bloomAmount, motionBlur, motionBlurQuality, motionBlurMaxDistance, motionBlurMultiplier } = s;
+  const {
+    amount,
+    useTriangleParticles,
+    speed,
+    dieSpeed,
+    radius,
+    curlSize,
+    attraction,
+    followMouse,
+    flipRatio,
+    triangleSize,
+    shadowDarkness,
+    bgColor,
+    color1,
+    color2,
+    fxaa,
+    bloom,
+    bloomRadius,
+    bloomAmount,
+    motionBlur,
+    motionBlurQuality,
+    motionBlurMaxDistance,
+    motionBlurMultiplier,
+  } = s;
 
-  const sim: any = useControls(
+  type SimControls = {
+    amount: AmountKey;
+    speed: number;
+    dieSpeed: number;
+    radius: number;
+    curlSize: number;
+    attraction: number;
+    followMouse: boolean;
+  };
+  const sim = useControls(
     "Simulator",
     {
-      amount: { value: amount, options: amountList as any },
+      amount: { value: amount, options: amountList },
       speed: { value: speed, min: 0, max: 3 },
       dieSpeed: { value: dieSpeed, min: 0.0005, max: 0.05 },
       radius: { value: radius, min: 0.2, max: 3 },
@@ -19,61 +56,203 @@ export default function ControlsPanel() {
       followMouse: { value: followMouse, label: "follow mouse" },
     },
     [amount, speed, dieSpeed, radius, curlSize, attraction, followMouse]
-  );
+  ) as unknown as SimControls;
 
-  const ren: any = useControls(
+  type RenControls = {
+    useTriangleParticles: boolean;
+    flipRatio: number;
+    triangleSize: number;
+    shadowDarkness: number;
+    color1: string;
+    color2: string;
+    bgColor: string;
+  };
+  const ren = useControls(
     "Rendering",
     {
-      useTriangleParticles: { value: useTriangleParticles, label: "new particle" },
-      flipRatio: { value: flipRatio, min: 0, max: 1, visible: useTriangleParticles },
-      shadowDarkness: { value: shadowDarkness, min: 0, max: 1, label: "shadow" },
+      useTriangleParticles: {
+        value: useTriangleParticles,
+        label: "new particle",
+      },
+      flipRatio: {
+        value: flipRatio,
+        min: 0,
+        max: 1,
+        visible: useTriangleParticles,
+      },
+      triangleSize: {
+        value: triangleSize,
+        min: 0.5,
+        max: 6,
+        visible: useTriangleParticles,
+      },
+      shadowDarkness: {
+        value: shadowDarkness,
+        min: 0,
+        max: 1,
+        label: "shadow",
+      },
       color1: { value: color1 },
       color2: { value: color2 },
       bgColor: { value: bgColor, label: "background" },
     },
-    [useTriangleParticles, flipRatio, shadowDarkness, color1, color2, bgColor]
-  );
+    [
+      useTriangleParticles,
+      flipRatio,
+      triangleSize,
+      shadowDarkness,
+      color1,
+      color2,
+      bgColor,
+    ]
+  ) as unknown as RenControls;
 
-  const post: any = useControls(
+  type PostControls = {
+    fxaa: boolean;
+    bloom: boolean;
+    bloomRadius: number;
+    bloomAmount: number;
+    motionBlur: boolean;
+    motionBlurMaxDistance: number;
+    motionBlurMultiplier: number;
+    motionBlurQuality: SceneSettings["motionBlurQuality"];
+  };
+  const post = useControls(
     "Post",
     {
       fxaa: { value: fxaa },
       bloom: { value: bloom },
-      bloomRadius: { value: bloomRadius, min: 0, max: 3, label: "bloom radius", visible: bloom },
-      bloomAmount: { value: bloomAmount, min: 0, max: 3, label: "bloom amount", visible: bloom },
+      bloomRadius: {
+        value: bloomRadius,
+        min: 0,
+        max: 3,
+        label: "bloom radius",
+        visible: bloom,
+      },
+      bloomAmount: {
+        value: bloomAmount,
+        min: 0,
+        max: 3,
+        label: "bloom amount",
+        visible: bloom,
+      },
       motionBlur: { value: motionBlur },
-      motionBlurMaxDistance: { value: motionBlurMaxDistance, min: 1, max: 300, label: "motion distance", visible: motionBlur },
-      motionBlurMultiplier: { value: motionBlurMultiplier, min: 0.1, max: 15, label: "motion multiplier", visible: motionBlur },
-      motionBlurQuality: { value: motionBlurQuality, options: motionBlurQualityList as any, label: "motion quality", visible: motionBlur },
+      motionBlurMaxDistance: {
+        value: motionBlurMaxDistance,
+        min: 1,
+        max: 300,
+        label: "motion distance",
+        visible: motionBlur,
+      },
+      motionBlurMultiplier: {
+        value: motionBlurMultiplier,
+        min: 0.1,
+        max: 15,
+        label: "motion multiplier",
+        visible: motionBlur,
+      },
+      motionBlurQuality: {
+        value: motionBlurQuality,
+        options: motionBlurQualityList,
+        label: "motion quality",
+        visible: motionBlur,
+      },
     },
-    [fxaa, bloom, bloomRadius, bloomAmount, motionBlur, motionBlurMaxDistance, motionBlurMultiplier, motionBlurQuality]
-  );
+    [
+      fxaa,
+      bloom,
+      bloomRadius,
+      bloomAmount,
+      motionBlur,
+      motionBlurMaxDistance,
+      motionBlurMultiplier,
+      motionBlurQuality,
+    ]
+  ) as unknown as PostControls;
 
   useEffect(() => {
-    if (sim.amount !== amount) s.setAmount(sim.amount);
-    if (sim.speed !== speed) s.set("speed", sim.speed);
-    if (sim.dieSpeed !== dieSpeed) s.set("dieSpeed", sim.dieSpeed);
-    if (sim.radius !== radius) s.set("radius", sim.radius);
-    if (sim.curlSize !== curlSize) s.set("curlSize", sim.curlSize);
-  if (sim.attraction !== attraction) s.set("attraction", sim.attraction);
-  if (sim.followMouse !== followMouse) s.set("followMouse", sim.followMouse);
+    // Simulator updates
+    if (sim.amount !== amount) {
+      s.setAmount(sim.amount);
+    }
+    const simUpdates: Array<[keyof SceneSettings, unknown, unknown]> = [
+      ["speed", sim.speed, speed],
+      ["dieSpeed", sim.dieSpeed, dieSpeed],
+      ["radius", sim.radius, radius],
+      ["curlSize", sim.curlSize, curlSize],
+      ["attraction", sim.attraction, attraction],
+      ["followMouse", sim.followMouse, followMouse],
+    ];
+    for (const [key, next, curr] of simUpdates) {
+      if (next !== curr) {
+        s.set(key, next as never);
+      }
+    }
 
-  if (ren.useTriangleParticles !== useTriangleParticles) s.set("useTriangleParticles", ren.useTriangleParticles);
-  if (ren.flipRatio !== flipRatio) s.set("flipRatio", ren.flipRatio);
-  if (ren.shadowDarkness !== shadowDarkness) s.set("shadowDarkness", ren.shadowDarkness);
-  if (ren.color1 !== color1) s.set("color1", ren.color1);
-    if (ren.color2 !== color2) s.set("color2", ren.color2);
-    if (ren.bgColor !== bgColor) s.set("bgColor", ren.bgColor);
+    // Rendering updates
+    const renUpdates: Array<[keyof SceneSettings, unknown, unknown]> = [
+      ["useTriangleParticles", ren.useTriangleParticles, useTriangleParticles],
+      ["flipRatio", ren.flipRatio, flipRatio],
+      ["triangleSize", ren.triangleSize, triangleSize],
+      ["shadowDarkness", ren.shadowDarkness, shadowDarkness],
+      ["color1", ren.color1, color1],
+      ["color2", ren.color2, color2],
+      ["bgColor", ren.bgColor, bgColor],
+    ];
+    for (const [key, next, curr] of renUpdates) {
+      if (next !== curr) {
+        s.set(key, next as never);
+      }
+    }
 
-    if (post.fxaa !== fxaa) s.set("fxaa", post.fxaa);
-    if (post.bloom !== bloom) s.set("bloom", post.bloom);
-    if (post.bloomRadius !== bloomRadius) s.set("bloomRadius", post.bloomRadius);
-    if (post.bloomAmount !== bloomAmount) s.set("bloomAmount", post.bloomAmount);
-    if (post.motionBlur !== motionBlur) s.set("motionBlur", post.motionBlur);
-    if (post.motionBlurMaxDistance !== motionBlurMaxDistance) s.set("motionBlurMaxDistance", post.motionBlurMaxDistance);
-    if (post.motionBlurMultiplier !== motionBlurMultiplier) s.set("motionBlurMultiplier", post.motionBlurMultiplier);
-    if (post.motionBlurQuality !== motionBlurQuality) s.set("motionBlurQuality", post.motionBlurQuality);
-  }, [sim, ren, post, s, amount, speed, dieSpeed, radius, curlSize, attraction, followMouse, flipRatio, shadowDarkness, useTriangleParticles, color1, color2, bgColor, fxaa, bloom, bloomRadius, bloomAmount, motionBlur, motionBlurMaxDistance, motionBlurMultiplier, motionBlurQuality]);
+    // Post-processing updates
+    const postUpdates: Array<[keyof SceneSettings, unknown, unknown]> = [
+      ["fxaa", post.fxaa, fxaa],
+      ["bloom", post.bloom, bloom],
+      ["bloomRadius", post.bloomRadius, bloomRadius],
+      ["bloomAmount", post.bloomAmount, bloomAmount],
+      ["motionBlur", post.motionBlur, motionBlur],
+      [
+        "motionBlurMaxDistance",
+        post.motionBlurMaxDistance,
+        motionBlurMaxDistance,
+      ],
+      ["motionBlurMultiplier", post.motionBlurMultiplier, motionBlurMultiplier],
+      ["motionBlurQuality", post.motionBlurQuality, motionBlurQuality],
+    ];
+    for (const [key, next, curr] of postUpdates) {
+      if (next !== curr) {
+        s.set(key, next as never);
+      }
+    }
+  }, [
+    sim,
+    ren,
+    post,
+    s,
+    amount,
+    speed,
+    dieSpeed,
+    radius,
+    curlSize,
+    attraction,
+    followMouse,
+    flipRatio,
+    triangleSize,
+    shadowDarkness,
+    useTriangleParticles,
+    color1,
+    color2,
+    bgColor,
+    fxaa,
+    bloom,
+    bloomRadius,
+    bloomAmount,
+    motionBlur,
+    motionBlurMaxDistance,
+    motionBlurMultiplier,
+    motionBlurQuality,
+  ]);
 
   return null;
 }

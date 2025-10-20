@@ -286,8 +286,8 @@ export default function FboParticles(props: Readonly<Props>) {
         depthWrite: true,
         blending: THREE.NoBlending,
         uniforms: {
-          texturePosition: { value: null as any },
-          texturePrevPosition: { value: null as any },
+          texturePosition: { value: null as unknown as THREE.Texture },
+          texturePrevPosition: { value: null as unknown as THREE.Texture },
         },
       });
     } else {
@@ -314,8 +314,8 @@ export default function FboParticles(props: Readonly<Props>) {
         depthWrite: true,
         blending: THREE.NoBlending,
         uniforms: {
-          texturePosition: { value: null as any },
-          texturePrevPosition: { value: null as any },
+          texturePosition: { value: null as unknown as THREE.Texture },
+          texturePrevPosition: { value: null as unknown as THREE.Texture },
           flipRatio: { value: flipRatio },
         },
       });
@@ -345,11 +345,34 @@ export default function FboParticles(props: Readonly<Props>) {
     attraction,
   ]);
 
+  // Rebuild triangles geometry if size changes at runtime
+  React.useEffect(() => {
+    if (mode !== "triangles") return;
+    if (!geoRef.current) return;
+    const newGeo = buildTrianglesGeometry(w, h, triangleSize);
+    const oldGeo = geoRef.current;
+    geoRef.current = newGeo;
+    // assign to mesh if mounted
+    if (meshRef.current) {
+      meshRef.current.geometry = newGeo as unknown as THREE.BufferGeometry;
+    }
+    oldGeo.dispose();
+  }, [triangleSize, mode, w, h]);
+
+  // Keep motion material flipRatio uniform in sync without rebuilding geometry
+  React.useEffect(() => {
+    if (mode !== "triangles") return;
+    if (motionMatRef.current && motionMatRef.current.uniforms.flipRatio) {
+      (motionMatRef.current.uniforms.flipRatio as THREE.IUniform<number>).value = flipRatio;
+    }
+  }, [flipRatio, mode]);
+
   // Attach legacy motion material to object for MotionBlur effect
   React.useEffect(() => {
-    const obj = (
-      mode === "points" ? pointsRef.current : meshRef.current
-    ) as any;
+    type MotionAttachable = { motionMaterial?: THREE.Material };
+    const obj = (mode === "points"
+      ? (pointsRef.current as unknown as MotionAttachable | null)
+      : (meshRef.current as unknown as MotionAttachable | null));
     if (obj && motionMatRef.current) {
       obj.motionMaterial = motionMatRef.current;
     }
@@ -361,8 +384,12 @@ export default function FboParticles(props: Readonly<Props>) {
   // React to color changes at runtime
   React.useEffect(() => {
     if (matRef.current) {
-      (matRef.current.uniforms.color1.value as THREE.Color).set(color1 as any);
-      (matRef.current.uniforms.color2.value as THREE.Color).set(color2 as any);
+      (matRef.current.uniforms.color1.value as THREE.Color).set(
+        color1 as THREE.ColorRepresentation
+      );
+      (matRef.current.uniforms.color2.value as THREE.Color).set(
+        color2 as THREE.ColorRepresentation
+      );
     }
   }, [color1, color2]);
 

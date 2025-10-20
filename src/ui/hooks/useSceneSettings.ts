@@ -12,6 +12,7 @@ export type SceneSettings = {
   curlSize: number;
   attraction: number;
   flipRatio: number;
+  triangleSize: number;
   shadowDarkness: number;
   bgColor: string;
   color1: string;
@@ -47,6 +48,7 @@ export const useSceneSettings = create<SceneSettings>((set) => {
     curlSize: DefaultSettings.curlSize,
     attraction: DefaultSettings.attraction,
     flipRatio: 0,
+  triangleSize: 2.5,
     shadowDarkness: DefaultSettings.shadowDarkness,
     bgColor: DefaultSettings.bgColor,
     color1: DefaultSettings.color1,
@@ -63,7 +65,8 @@ export const useSceneSettings = create<SceneSettings>((set) => {
     cols,
     rows,
 
-    set: (key, value) => set({ [key]: value } as any),
+    set: (key, value) =>
+      set((prev: SceneSettings) => ({ ...prev, [key]: value })),
     setAmount: (amount: AmountKey) => {
       const [w, h, r] = amountMap[amount];
       set({ amount, cols: w, rows: h, radius: r });

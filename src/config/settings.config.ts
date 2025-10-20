@@ -87,8 +87,8 @@ function getIsMobile(ua: string): boolean {
 }
 
 function getWindow(): Window | undefined {
-  const g = globalThis as any;
-  return g && g.window ? (g.window as Window) : undefined;
+  const g = globalThis as unknown as { window?: Window };
+  return g && g.window ? g.window : undefined;
 }
 
 function parseParamsFromWindow(w: Window): {

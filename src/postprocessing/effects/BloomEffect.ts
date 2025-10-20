@@ -38,6 +38,7 @@ export default class BloomEffect extends Effect {
       vertexShader: fboHelper.getVertexShader(),
       fragmentShader:
         fboHelper.getRawShaderPrefix() + this.getBloomBlurShader(),
+      glslVersion: THREE.GLSL3,
     });
   }
 

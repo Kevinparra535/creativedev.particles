@@ -50,9 +50,9 @@ function getPropIndex(style: CSSStyleDeclaration, prop: string): number {
   const ucProp = prop.charAt(0).toUpperCase() + prop.slice(1);
   for (let i = 0; i < PREFIXES.length; i++) {
     const key = (PREFIXES[i] + ucProp) as keyof CSSStyleDeclaration;
-    if ((style as any)[key] !== undefined) return i + 2; // vendor
+    if ((style as unknown as Record<string, unknown>)[key as string] !== undefined) return i + 2; // vendor
   }
-  if ((style as any)[prop] !== undefined) return 1; // standard
+  if ((style as unknown as Record<string, unknown>)[prop] !== undefined) return 1; // standard
   return 0; // unsupported
 }
 
@@ -70,8 +70,8 @@ function getPropFromIndex(
         : false;
   if (!resolved) return false;
   if (testCase) {
-    (style as any)[resolved] = testCase;
-    if ((style as any)[resolved] !== testCase) return false;
+    (style as unknown as Record<string, string>)[resolved] = testCase;
+    if ((style as unknown as Record<string, string>)[resolved] !== testCase) return false;
   }
   return resolved;
 }
@@ -80,24 +80,18 @@ function detectMediaFormat(
   kind: "video" | "audio",
   orders: string[]
 ): Maybe<"mp4" | "webm" | "ogg" | "mp3"> {
-  if (
-    (globalThis as any).window === undefined ||
-    (globalThis as any).document === undefined
-  )
+  if (globalThis.window === undefined || typeof document === "undefined")
     return undefined;
   let el: HTMLMediaElement | null = null;
   try {
-    const g: any = globalThis as any;
-    el =
-      kind === "video"
-        ? (new g.Video() as HTMLVideoElement)
-        : (new g.Audio() as HTMLAudioElement);
+    const g = globalThis as unknown as { Video?: new () => HTMLVideoElement; Audio?: new () => HTMLAudioElement };
+    el = kind === "video" && g.Video ? new g.Video() : kind === "audio" && g.Audio ? new g.Audio() : null;
   } catch {
     el = document.createElement(kind);
   }
   for (const mime of orders) {
-    if (typeof (el as any).canPlayType === "function" && el.canPlayType(mime)) {
-      return mime.substring(mime.indexOf("/") + 1) as any;
+    if (el && typeof el.canPlayType === "function" && el.canPlayType(mime)) {
+      return mime.substring(mime.indexOf("/") + 1) as unknown as "mp4" | "webm" | "ogg" | "mp3";
     }
   }
   return undefined;
@@ -105,11 +99,11 @@ function detectMediaFormat(
 
 export function getBrowserInfo(): BrowserInfo {
   if (cached) return cached;
-  const hasWindow = (globalThis as any).window !== undefined;
+  const hasWindow = globalThis.window !== undefined;
   const hasDocument = typeof document !== "undefined";
   const style = getDummyStyle();
   const body = hasDocument ? document.body : null;
-  const ua = hasWindow ? globalThis.navigator.userAgent.toLowerCase() : "";
+  const ua = hasWindow ? navigator.userAgent.toLowerCase() : "";
 
   const videoFormatTestOrders = ["video/mp4", "video/webm", "video/ogg"];
   const audioFormatTestOrders = ["audio/mp3", "audio/ogg"];
@@ -117,23 +111,18 @@ export function getBrowserInfo(): BrowserInfo {
   const info: BrowserInfo = {
     videoFormatTestOrders,
     audioFormatTestOrders,
-    videoFormat: detectMediaFormat("video", videoFormatTestOrders) as any,
-    audioFormat: detectMediaFormat("audio", audioFormatTestOrders) as any,
+  videoFormat: detectMediaFormat("video", videoFormatTestOrders) as "mp4" | "webm" | "ogg" | undefined,
+  audioFormat: detectMediaFormat("audio", audioFormatTestOrders) as "mp3" | "ogg" | undefined,
 
-    isIFrame: hasWindow ? globalThis.self !== globalThis.top : false,
-    isPhantom: hasWindow ? Boolean((globalThis as any).callPhantom) : false,
+  isIFrame: hasWindow ? globalThis.self !== globalThis.top : false,
+    isPhantom: hasWindow ? Boolean((globalThis as unknown as { callPhantom?: unknown }).callPhantom) : false,
     isRetina: hasWindow
-      ? !!(globalThis as any).devicePixelRatio &&
-        (globalThis as any).devicePixelRatio >= 1.5
+      ? !!globalThis.devicePixelRatio && globalThis.devicePixelRatio >= 1.5
       : false,
-    isSupportOpacity: hasDocument
-      ? (document.documentElement.style as any).opacity !== undefined
-      : false,
+    isSupportOpacity: hasDocument ? document.documentElement.style.opacity !== undefined : false,
 
     isChrome: /chrome/.test(ua),
-    isStandalone: hasWindow
-      ? ((globalThis.navigator as any).standalone as boolean | undefined)
-      : undefined,
+  isStandalone: hasWindow ? (globalThis.navigator as unknown as { standalone?: boolean }).standalone : undefined,
     isIOS: /iphone|ipod|ipad/.test(ua),
     isSafari: /safari/.test(ua),
     isIOSWebView: false, // set below
@@ -150,40 +139,17 @@ export function getBrowserInfo(): BrowserInfo {
   info.isIOSWebView = info.isIOS && !info.isStandalone && !info.isSafari;
 
   if (style) {
-    const transitionIdx = getPropIndex(style, "transition");
+  const transitionIdx = getPropIndex(style, "transition");
     const transformIdx = getPropIndex(style, "transform");
     const perspectiveIdx = getPropIndex(style, "perspective");
     const originIdx = getPropIndex(style, "transformOrigin");
 
-    info.transitionStyle = getPropFromIndex(
-      style,
-      "transition",
-      transitionIdx
-    ) as any;
-    info.transformStyle = getPropFromIndex(
-      style,
-      "transform",
-      transformIdx
-    ) as any;
-    info.transform3dStyle = getPropFromIndex(
-      style,
-      "transform",
-      perspectiveIdx
-    ) as any; // truthy if perspective supported
-    info.transformPerspectiveStyle = getPropFromIndex(
-      style,
-      "perspective",
-      perspectiveIdx
-    ) as any;
-    info.transformOriginStyle = getPropFromIndex(
-      style,
-      "transformOrigin",
-      originIdx
-    ) as any;
-    info.webkitFilter =
-      body && (body.style as any).webkitFilter !== undefined
-        ? "webkitFilter"
-        : false;
+    info.transitionStyle = getPropFromIndex(style, "transition", transitionIdx) || false;
+    info.transformStyle = getPropFromIndex(style, "transform", transformIdx) || false;
+    info.transform3dStyle = getPropFromIndex(style, "transform", perspectiveIdx) || false; // truthy if perspective supported
+    info.transformPerspectiveStyle = getPropFromIndex(style, "perspective", perspectiveIdx) || false;
+    info.transformOriginStyle = getPropFromIndex(style, "transformOrigin", originIdx) || false;
+    info.webkitFilter = body && (body.style as unknown as Record<string, unknown>).webkitFilter !== undefined ? "webkitFilter" : false;
     info.isSupportPreserve3d = !!getPropFromIndex(
       style,
       "transformStyle",

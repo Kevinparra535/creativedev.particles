@@ -8,7 +8,7 @@ import Floor from "../components/scene/Floor";
 
 const Scene1 = () => {
   const s = useSceneSettings();
-  const mode = s.useTriangleParticles ? "triangles" : "points";
+  const mode: "triangles" | "points" = s.useTriangleParticles ? "triangles" : "points";
   useEffect(() => {
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.code === "Space") {
@@ -16,8 +16,8 @@ const Scene1 = () => {
         s.set("dieSpeed", s.dieSpeed === 0 ? 0.015 : 0);
       }
     };
-    globalThis.addEventListener("keyup", onKeyUp as any);
-    return () => globalThis.removeEventListener("keyup", onKeyUp as any);
+    globalThis.addEventListener("keyup", onKeyUp);
+    return () => globalThis.removeEventListener("keyup", onKeyUp);
   }, [s]);
   return (
     <>
@@ -25,7 +25,7 @@ const Scene1 = () => {
       <Floor />
       <ControlsPanel />
       <AdaptiveParticles
-        mode={mode as any}
+        mode={mode}
         cols={s.cols}
         rows={s.rows}
         radius={s.radius * 300}
@@ -35,10 +35,11 @@ const Scene1 = () => {
         attraction={s.attraction}
         followMouse={s.followMouse}
         flipRatio={s.flipRatio}
+        triangleSize={s.triangleSize}
         color1={s.color1}
         color2={s.color2}
       />
-      <OrbitControls enableDamping dampingFactor={0.1} />
+  <OrbitControls enableDamping={true} dampingFactor={0.1} />
     </>
   );
 };
