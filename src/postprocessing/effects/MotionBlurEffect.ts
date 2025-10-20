@@ -157,6 +157,7 @@ export default class MotionBlurEffect extends Effect {
         (sampleCount || 21) +
         "\n" +
         this.getMotionBlurSamplingShader(),
+      glslVersion: THREE.GLSL3,
     });
   }
 
@@ -379,22 +380,26 @@ export default class MotionBlurEffect extends Effect {
    */
   private getMotionBlurShader(): string {
     return glsl`
+      precision highp float;
+
       uniform sampler2D u_texture;
       uniform sampler2D u_linesTexture;
       uniform float u_lineAlphaMultiplier;
-      
-      varying vec2 v_uv;
-      
+
+      in vec2 v_uv;
+      out vec4 outColor;
+
       void main() {
-        vec3 baseColor = texture2D(u_texture, v_uv).rgb;
-        vec4 linesColor = texture2D(u_linesTexture, v_uv);
-        
-        // Simple alpha blend
-        float alpha = linesColor.a * u_lineAlphaMultiplier;
-        vec3 color = mix(baseColor, linesColor.rgb, alpha);
-        
-        gl_FragColor = vec4(color, 1.0);
+          vec3 baseColor = texture(u_texture, v_uv).rgb;
+          vec4 linesColor = texture(u_linesTexture, v_uv);
+
+          // Mezcla alfa simple
+          float alpha = linesColor.a * u_lineAlphaMultiplier;
+          vec3 color = mix(baseColor, linesColor.rgb, alpha);
+
+          outColor = vec4(color, 1.0);
       }
+
     `;
   }
 
@@ -403,37 +408,41 @@ export default class MotionBlurEffect extends Effect {
    */
   private getMotionBlurLinesVertexShader(): string {
     return glsl`
-      attribute vec3 position;
+      precision highp float;
+
+      in vec3 position;
+
       uniform vec2 u_resolution;
       uniform sampler2D u_motionTexture;
       uniform float u_maxDistance;
-      uniform float u_jitter;
+      uniform float u_jitter;            // (no usado aquí, lo conservo por API)
       uniform float u_motionMultiplier;
-      
-      varying vec2 v_velocity;
-      varying float v_alpha;
-      
+
+      out vec2 v_velocity;
+      out float v_alpha;
+
       void main() {
         vec2 uv = position.xy;
-        vec4 motionData = texture2D(u_motionTexture, uv);
-        
-        vec2 velocity = motionData.xy * u_motionMultiplier;
+
+        // Lee motion (xy = velocidad, z = depth si existiera)
+        vec2 velocity = texture(u_motionTexture, uv).xy * u_motionMultiplier;
+
         float distance = length(velocity);
-        
-        // Clamp velocity
+
+        // Clamp de velocidad
         if (distance > u_maxDistance) {
           velocity = normalize(velocity) * u_maxDistance;
         }
-        
+
         v_velocity = velocity;
         v_alpha = min(distance / u_maxDistance, 1.0);
-        
-        // Position based on line endpoint
+
+        // Posición NDC del extremo de la línea
         vec2 screenPos = uv * 2.0 - 1.0;
         if (position.z > 0.5) {
           screenPos += velocity / u_resolution * 2.0;
         }
-        
+
         gl_Position = vec4(screenPos, 0.0, 1.0);
       }
     `;
@@ -444,18 +453,22 @@ export default class MotionBlurEffect extends Effect {
    */
   private getMotionBlurLinesFragShader(): string {
     return glsl`
-      uniform sampler2D u_texture;
+      precision highp float;
+
+      uniform sampler2D u_texture;  // corregido (en singular)
       uniform float u_opacity;
       uniform float u_fadeStrength;
-      
-      varying vec2 v_velocity;
-      varying float v_alpha;
-      
+
+      in vec2 v_velocity;
+      in float v_alpha;
+
+      out vec4 outColor;
+
       void main() {
-        float alpha = v_alpha * u_opacity * u_fadeStrength;
-        vec3 color = vec3(1.0); // White lines
-        
-        gl_FragColor = vec4(color, alpha);
+          float alpha = v_alpha * u_opacity * u_fadeStrength;
+          vec3 color = vec3(1.0); // Líneas blancas
+
+          outColor = vec4(color, alpha);
       }
     `;
   }
@@ -465,51 +478,61 @@ export default class MotionBlurEffect extends Effect {
    */
   private getMotionBlurSamplingShader(): string {
     return glsl`
+      precision highp float;
+
       uniform sampler2D u_texture;
       uniform sampler2D u_motionTexture;
       uniform vec2 u_resolution;
       uniform float u_maxDistance;
-      uniform float u_fadeStrength;
+      uniform float u_fadeStrength;     // (no usada aquí; puedes usarla para ajustar 'weight' si quieres)
       uniform float u_motionMultiplier;
       uniform float u_leaning;
-      
-      varying vec2 v_uv;
-      
+
+      in vec2 v_uv;
+
+      out vec4 outColor;
+
+      // Asegura un valor por defecto si no te lo pasa el bundler/loader
+      #ifndef SAMPLE_COUNT
+        #define SAMPLE_COUNT 8
+      #endif
+
       void main() {
-        vec4 motionData = texture2D(u_motionTexture, v_uv);
-        vec2 velocity = motionData.xy * u_motionMultiplier;
-        
+        vec2 velocity = texture(u_motionTexture, v_uv).xy * u_motionMultiplier;
+
         float distance = length(velocity);
         if (distance > u_maxDistance) {
           velocity = normalize(velocity) * u_maxDistance;
           distance = u_maxDistance;
         }
-        
+
         vec3 color = vec3(0.0);
         float totalWeight = 0.0;
-        
-        // Sample along motion vector
+
+        // Muestreo a lo largo del vector de movimiento
         for (int i = 0; i < SAMPLE_COUNT; i++) {
           float t = float(i) / float(SAMPLE_COUNT - 1);
           t = mix(-u_leaning, 1.0 - u_leaning, t);
-          
+
           vec2 sampleUV = v_uv + velocity * t / u_resolution;
-          
-          if (sampleUV.x >= 0.0 && sampleUV.x <= 1.0 && 
+
+          if (sampleUV.x >= 0.0 && sampleUV.x <= 1.0 &&
               sampleUV.y >= 0.0 && sampleUV.y <= 1.0) {
+
             float weight = 1.0 - abs(t);
-            color += texture2D(u_texture, sampleUV).rgb * weight;
+            // Si quieres usar u_fadeStrength: weight = pow(weight, u_fadeStrength);
+            color += texture(u_texture, sampleUV).rgb * weight;
             totalWeight += weight;
           }
         }
-        
+
         if (totalWeight > 0.0) {
           color /= totalWeight;
         } else {
-          color = texture2D(u_texture, v_uv).rgb;
+          color = texture(u_texture, v_uv).rgb;
         }
-        
-        gl_FragColor = vec4(color, 1.0);
+
+        outColor = vec4(color, 1.0);
       }
     `;
   }

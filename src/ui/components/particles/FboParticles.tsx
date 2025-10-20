@@ -139,7 +139,7 @@ export default function FboParticles(props: Readonly<Props>) {
     color2 = new THREE.Color(0.2, 0.6, 1),
     radius = 300,
     attraction = 0.6,
-  followMouse = true,
+    followMouse = true,
     curlSize = 0.015,
     speed = 1,
     dieSpeed = 0.003,
@@ -363,16 +363,19 @@ export default function FboParticles(props: Readonly<Props>) {
   React.useEffect(() => {
     if (mode !== "triangles") return;
     if (motionMatRef.current && motionMatRef.current.uniforms.flipRatio) {
-      (motionMatRef.current.uniforms.flipRatio as THREE.IUniform<number>).value = flipRatio;
+      (
+        motionMatRef.current.uniforms.flipRatio as THREE.IUniform<number>
+      ).value = flipRatio;
     }
   }, [flipRatio, mode]);
 
   // Attach legacy motion material to object for MotionBlur effect
   React.useEffect(() => {
     type MotionAttachable = { motionMaterial?: THREE.Material };
-    const obj = (mode === "points"
-      ? (pointsRef.current as unknown as MotionAttachable | null)
-      : (meshRef.current as unknown as MotionAttachable | null));
+    const obj =
+      mode === "points"
+        ? (pointsRef.current as unknown as MotionAttachable | null)
+        : (meshRef.current as unknown as MotionAttachable | null);
     if (obj && motionMatRef.current) {
       obj.motionMaterial = motionMatRef.current;
     }
@@ -431,7 +434,7 @@ export default function FboParticles(props: Readonly<Props>) {
     simMat.uniforms.dieSpeed.value = dieSpeed;
     simMat.uniforms.radius.value = radius;
     simMat.uniforms.curlSize.value = curlSize;
-  simMat.uniforms.attraction.value = followMouse ? attraction : 0;
+    simMat.uniforms.attraction.value = followMouse ? attraction : 0;
     simMat.uniforms.texturePosition.value = read.texture;
     simMat.uniforms.textureDefaultPosition.value =
       defaultRTRef.current?.texture ?? null;

@@ -61,32 +61,30 @@ export function init(renderer: THREE.WebGLRenderer): void {
 
   // === Shaders GLSL3 (sin #version: Three la inyecta al compilar con glslVersion: THREE.GLSL3) ===
   const COPY_VERT_GLSL3 = glsl`
-precision highp float;
+    precision highp float;
 
-in vec3 position;
-in vec2 uv;
+    in vec3 position;
+    in vec2 uv;
 
-out vec2 v_uv;
+    out vec2 v_uv;
 
-void main() {
-    v_uv = uv;
-    gl_Position = vec4(position, 1.0);
-}
-
+    void main() {
+        v_uv = uv;
+        gl_Position = vec4(position, 1.0);
+    }
   `;
 
   const COPY_FRAG_GLSL3 = glsl`
-precision highp float;
+    precision highp float;
 
-uniform sampler2D u_texture;
+    uniform sampler2D u_texture;
 
-in vec2 v_uv;        // reemplaza 'varying' → 'in'
-out vec4 outColor;   // reemplaza gl_FragColor → outColor
+    in vec2 v_uv;
+    out vec4 outColor;
 
-void main() {
-    outColor = texture(u_texture, v_uv); // reemplaza texture2D → texture
-}
-
+    void main() {
+        outColor = texture(u_texture, v_uv);
+    }
   `;
 
   // Guardamos para getVertexShader() / legacy
