@@ -86,68 +86,109 @@ function getIsMobile(ua: string): boolean {
   return /(iPad|iPhone|Android)/i.test(ua);
 }
 
-// Parses a URL like legacy's settings.js but using URLSearchParams.
-export function getInitialSettings(url?: string, ua?: string): SettingsConfig {
-  const hasWindow = typeof window !== "undefined";
+function getWindow(): Window | undefined {
+  const g = globalThis as any;
+  return g && g.window ? (g.window as Window) : undefined;
+}
 
-  const w: Window | undefined = hasWindow ? window : undefined;
+function parseParamsFromWindow(w: Window): {
+  search: URLSearchParams;
+  hash: URLSearchParams;
+} {
+  const search = w.location.search
+    ? new URLSearchParams(w.location.search.slice(1))
+    : new URLSearchParams();
+  const hash = w.location.hash
+    ? new URLSearchParams(w.location.hash.slice(1))
+    : new URLSearchParams();
+  return { search, hash };
+}
 
-  // Merge search and hash params with hash taking precedence (legacy behavior)
-  const href = w ? w.location.href : url || "";
-  let searchParams = new URLSearchParams();
-  let hashParams = new URLSearchParams();
-
+function parseParamsFromHref(href: string): {
+  search: URLSearchParams;
+  hash: URLSearchParams;
+} {
+  let search = new URLSearchParams();
+  let hash = new URLSearchParams();
   try {
-    if (w) {
-      if (w.location.search) searchParams = new URLSearchParams(w.location.search.slice(1));
-      if (w.location.hash) hashParams = new URLSearchParams(w.location.hash.slice(1));
-    } else if (url) {
-      const u = new URL(url);
-      if (u.search) searchParams = new URLSearchParams(u.search.slice(1));
-      if (u.hash) hashParams = new URLSearchParams(u.hash.slice(1));
-    }
+    const u = new URL(href);
+    if (u.search) search = new URLSearchParams(u.search.slice(1));
+    if (u.hash) hash = new URLSearchParams(u.hash.slice(1));
   } catch {
-    // Fallback parsing if URL constructor fails
     const qIdx = href.indexOf("?");
     const hIdx = href.indexOf("#");
-    const searchStr = qIdx >= 0 ? href.slice(qIdx + 1, hIdx >= 0 ? hIdx : undefined) : "";
+    const searchStr =
+      qIdx >= 0 ? href.slice(qIdx + 1, hIdx >= 0 ? hIdx : undefined) : "";
     const hashStr = hIdx >= 0 ? href.slice(hIdx + 1) : "";
-    if (searchStr) searchParams = new URLSearchParams(searchStr);
-    if (hashStr) hashParams = new URLSearchParams(hashStr);
+    if (searchStr) search = new URLSearchParams(searchStr);
+    if (hashStr) hash = new URLSearchParams(hashStr);
   }
+  return { search, hash };
+}
 
-  // Build final params map where hash overrides search
-  const params = new URLSearchParams(searchParams);
-  for (const [k, v] of hashParams.entries()) params.set(k, v);
+function readParamsFromUrl(
+  w: Window | undefined,
+  url?: string
+): { search: URLSearchParams; hash: URLSearchParams; href: string } {
+  const href = w?.location?.href ?? url ?? "";
+  if (w) {
+    const { search, hash } = parseParamsFromWindow(w);
+    return { search, hash, href };
+  }
+  const { search, hash } = parseParamsFromHref(href);
+  return { search, hash, href };
+}
 
-  // amount
+function mergeParams(
+  search: URLSearchParams,
+  hash: URLSearchParams
+): URLSearchParams {
+  const params = new URLSearchParams(search);
+  for (const [k, v] of hash.entries()) params.set(k, v);
+  return params;
+}
+
+function parseAmount(params: URLSearchParams): {
+  amount: AmountKey;
+  width: number;
+  height: number;
+  radius: number;
+} {
   const amountParam = (params.get("amount") || "65k") as AmountKey;
   const amount: AmountKey = amountList.includes(amountParam)
     ? amountParam
     : "65k";
+  const [width, height, radius] = amountMap[amount];
+  return { amount, width, height, radius };
+}
 
-  const [simulatorTextureWidth, simulatorTextureHeight, radius] =
-    amountMap[amount];
-
-  // motion blur quality
+function parseMotionBlurQuality(params: URLSearchParams): MotionBlurQualityKey {
   const mbqParam = (params.get("motionBlurQuality") ||
     "medium") as MotionBlurQualityKey;
-  const motionBlurQuality: MotionBlurQualityKey =
-    motionBlurQualityList.includes(mbqParam) ? mbqParam : "medium";
+  return motionBlurQualityList.includes(mbqParam) ? mbqParam : "medium";
+}
 
-  const userAgent = ua || (w ? w.navigator.userAgent : "");
+// Parses a URL like legacy's settings.js but using URLSearchParams.
+export function getInitialSettings(url?: string, ua?: string): SettingsConfig {
+  const w = getWindow();
+  const { search, hash } = readParamsFromUrl(w, url);
+  const params = mergeParams(search, hash);
+
+  const { amount, width, height, radius } = parseAmount(params);
+  const motionBlurQuality = parseMotionBlurQuality(params);
+  const userAgent = ua || (w && w.navigator ? w.navigator.userAgent : "");
 
   const settings: SettingsConfig = {
     useStats: false,
     isMobile: getIsMobile(userAgent),
 
     amount,
-    simulatorTextureWidth,
-    simulatorTextureHeight,
+    simulatorTextureWidth: width,
+    simulatorTextureHeight: height,
 
     useTriangleParticles: true,
     followMouse: true,
-    speed: 1, // Legacy default: 1 (not 3)
+    speed: 1,
     dieSpeed: 0.015,
     radius,
     curlSize: 0.02,
@@ -170,12 +211,12 @@ export function getInitialSettings(url?: string, ua?: string): SettingsConfig {
 
 // Convenience: default export initialized from the current environment.
 // This will be recreated on each module load (including page reloads)
-let DefaultSettings: SettingsConfig = getInitialSettings();
+const DefaultSettings: SettingsConfig = getInitialSettings();
 
 // Function to reinitialize settings (useful for testing or dynamic updates)
 export function reinitializeSettings(): SettingsConfig {
-  DefaultSettings = getInitialSettings();
-  return DefaultSettings;
+  // Do not mutate exported bindings; just return a fresh snapshot if needed
+  return getInitialSettings();
 }
 
 export default DefaultSettings;

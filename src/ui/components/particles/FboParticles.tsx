@@ -3,7 +3,11 @@ import * as THREE from "three";
 import { useThree, useFrame } from "@react-three/fiber";
 import DefaultSettings from "../../../config/settings.config";
 import { positionFrag, quadVert } from "../../../glsl/simulationShaders";
-import { particlesFragmentShader, particlesVertexShader, trianglesVertexShader } from "../../../glsl/particlesShaders";
+import {
+  particlesFragmentShader,
+  particlesVertexShader,
+  trianglesVertexShader,
+} from "../../../glsl/particlesShaders";
 import { createPingPong } from "../../../utils/fboHelper";
 
 type Props = {
@@ -41,7 +45,11 @@ function buildLookupGeometry(width: number, height: number) {
   return geo;
 }
 
-function buildTrianglesGeometry(width: number, height: number, triSize: number) {
+function buildTrianglesGeometry(
+  width: number,
+  height: number,
+  triSize: number
+) {
   const count = width * height;
   const triVerts = [
     new THREE.Vector3(0, 1, 0),
@@ -54,7 +62,9 @@ function buildTrianglesGeometry(width: number, height: number, triSize: number) 
   const positionFlip = new Float32Array(count * 3 * 3);
   const fboUV = new Float32Array(count * 3 * 2);
 
-  let vp = 0, vpf = 0, vu = 0;
+  let vp = 0,
+    vpf = 0,
+    vu = 0;
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const u = (x + 0.5) / width;
@@ -62,9 +72,14 @@ function buildTrianglesGeometry(width: number, height: number, triSize: number) 
       for (let k = 0; k < 3; k++) {
         const a = triVerts[k];
         const b = triFlip[k];
-        positions[vp++] = a.x; positions[vp++] = a.y; positions[vp++] = a.z;
-        positionFlip[vpf++] = b.x; positionFlip[vpf++] = b.y; positionFlip[vpf++] = b.z;
-        fboUV[vu++] = u; fboUV[vu++] = v;
+        positions[vp++] = a.x;
+        positions[vp++] = a.y;
+        positions[vp++] = a.z;
+        positionFlip[vpf++] = b.x;
+        positionFlip[vpf++] = b.y;
+        positionFlip[vpf++] = b.z;
+        fboUV[vu++] = u;
+        fboUV[vu++] = v;
       }
     }
   }
@@ -113,9 +128,9 @@ void main(){
 
 export default function FboParticles(props: Readonly<Props>) {
   const {
-  size = DefaultSettings.simulatorTextureWidth, // uses settings when cols/rows not provided
-  cols,
-  rows,
+    size = DefaultSettings.simulatorTextureWidth, // uses settings when cols/rows not provided
+    cols,
+    rows,
     color1 = new THREE.Color(1, 1, 1),
     color2 = new THREE.Color(0.2, 0.6, 1),
     radius = 300,
@@ -133,7 +148,9 @@ export default function FboParticles(props: Readonly<Props>) {
   const resolution = React.useMemo(() => new THREE.Vector2(w, h), [w, h]);
 
   // RTTs: ping-pong for positions and one default positions texture
-  const pingpongRef = React.useRef<ReturnType<typeof createPingPong> | null>(null);
+  const pingpongRef = React.useRef<ReturnType<typeof createPingPong> | null>(
+    null
+  );
   const defaultRTRef = React.useRef<THREE.WebGLRenderTarget | null>(null);
 
   // Offscreen quad scene for simulation
@@ -155,7 +172,10 @@ export default function FboParticles(props: Readonly<Props>) {
 
   // Mouse 3D target on z=0 plane
   const mouse3d = React.useRef(new THREE.Vector3());
-  const planeZ = React.useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), []);
+  const planeZ = React.useMemo(
+    () => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0),
+    []
+  );
   const raycaster = React.useMemo(() => new THREE.Raycaster(), []);
 
   // Init resources once
@@ -279,7 +299,26 @@ export default function FboParticles(props: Readonly<Props>) {
       simMatRef.current?.dispose();
       simMeshRef.current?.geometry.dispose();
     };
-  }, [gl, size, resolution, color1, color2, speed, dieSpeed, radius, curlSize, attraction]);
+  }, [
+    gl,
+    size,
+    resolution,
+    color1,
+    color2,
+    speed,
+    dieSpeed,
+    radius,
+    curlSize,
+    attraction,
+  ]);
+
+  // React to color changes at runtime
+  React.useEffect(() => {
+    if (matRef.current) {
+      (matRef.current.uniforms.color1.value as THREE.Color).set(color1 as any);
+      (matRef.current.uniforms.color2.value as THREE.Color).set(color2 as any);
+    }
+  }, [color1, color2]);
 
   // Update mouse target in world space (z=0 plane)
   useFrame(({ pointer }) => {
@@ -294,7 +333,14 @@ export default function FboParticles(props: Readonly<Props>) {
 
   // Simulation + draw per frame
   useFrame(({ clock }) => {
-    if (!pingpongRef.current || !simMatRef.current || !simMeshRef.current || !simSceneRef.current || !simCamRef.current) return;
+    if (
+      !pingpongRef.current ||
+      !simMatRef.current ||
+      !simMeshRef.current ||
+      !simSceneRef.current ||
+      !simCamRef.current
+    )
+      return;
 
     // init animation 0..1 over ~2s
     const t = (performance.now() - startTime.current) / 1000;
@@ -307,8 +353,15 @@ export default function FboParticles(props: Readonly<Props>) {
     // Setup simulation uniforms
     const simMat = simMatRef.current;
     simMat.uniforms.time.value = clock.getElapsedTime();
+    // Live update dynamic uniforms from props
+    simMat.uniforms.speed.value = speed;
+    simMat.uniforms.dieSpeed.value = dieSpeed;
+    simMat.uniforms.radius.value = radius;
+    simMat.uniforms.curlSize.value = curlSize;
+    simMat.uniforms.attraction.value = attraction;
     simMat.uniforms.texturePosition.value = read.texture;
-    simMat.uniforms.textureDefaultPosition.value = defaultRTRef.current?.texture ?? null;
+    simMat.uniforms.textureDefaultPosition.value =
+      defaultRTRef.current?.texture ?? null;
     simMat.uniforms.initAnimation.value = initAnim.current;
     (simMat.uniforms.mouse3d.value as THREE.Vector3).copy(mouse3d.current);
 
@@ -333,7 +386,19 @@ export default function FboParticles(props: Readonly<Props>) {
   // Render points
   if (!geoRef.current || !matRef.current) return null;
   if (mode === "points") {
-    return <points ref={pointsRef as React.RefObject<THREE.Points>} geometry={geoRef.current as unknown as THREE.BufferGeometry} material={matRef.current as unknown as THREE.Material} />;
+    return (
+      <points
+        ref={pointsRef as React.RefObject<THREE.Points>}
+        geometry={geoRef.current as unknown as THREE.BufferGeometry}
+        material={matRef.current as unknown as THREE.Material}
+      />
+    );
   }
-  return <mesh ref={meshRef as React.RefObject<THREE.Mesh>} geometry={geoRef.current as unknown as THREE.BufferGeometry} material={matRef.current as unknown as THREE.Material} />;
+  return (
+    <mesh
+      ref={meshRef as React.RefObject<THREE.Mesh>}
+      geometry={geoRef.current as unknown as THREE.BufferGeometry}
+      material={matRef.current as unknown as THREE.Material}
+    />
+  );
 }
