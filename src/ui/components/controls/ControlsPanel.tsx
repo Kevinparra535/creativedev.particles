@@ -1,12 +1,7 @@
-import { useControls } from "leva";
-import { useEffect } from "react";
-import { useSceneSettings } from "../hooks/useSceneSettings";
-import {
-  amountList,
-  motionBlurQualityList,
-} from "../../config/settings.config";
-import type { AmountKey } from "../../config/settings.config";
-import type { SceneSettings } from "../hooks/useSceneSettings";
+import { useControls } from 'leva';
+import { useEffect } from 'react';
+import { useSceneSettings, type SceneSettings } from '@/ui/hooks/useSceneSettings';
+import { amountList, motionBlurQualityList, type AmountKey } from '@/config/settings.config';
 
 export default function ControlsPanel() {
   const s = useSceneSettings();
@@ -32,7 +27,7 @@ export default function ControlsPanel() {
     motionBlur,
     motionBlurQuality,
     motionBlurMaxDistance,
-    motionBlurMultiplier,
+    motionBlurMultiplier
   } = s;
 
   type SimControls = {
@@ -45,7 +40,7 @@ export default function ControlsPanel() {
     followMouse: boolean;
   };
   const sim = useControls(
-    "Simulator",
+    'Simulator',
     {
       amount: { value: amount, options: amountList },
       speed: { value: speed, min: 0, max: 3 },
@@ -53,7 +48,7 @@ export default function ControlsPanel() {
       radius: { value: radius, min: 0.2, max: 3 },
       curlSize: { value: curlSize, min: 0.001, max: 0.05 },
       attraction: { value: attraction, min: -2, max: 2 },
-      followMouse: { value: followMouse, label: "follow mouse" },
+      followMouse: { value: followMouse, label: 'follow mouse' }
     },
     [amount, speed, dieSpeed, radius, curlSize, attraction, followMouse]
   ) as unknown as SimControls;
@@ -68,43 +63,35 @@ export default function ControlsPanel() {
     bgColor: string;
   };
   const ren = useControls(
-    "Rendering",
+    'Rendering',
     {
       useTriangleParticles: {
         value: useTriangleParticles,
-        label: "new particle",
+        label: 'new particle'
       },
       flipRatio: {
         value: flipRatio,
         min: 0,
         max: 1,
-        visible: useTriangleParticles,
+        visible: useTriangleParticles
       },
       triangleSize: {
         value: triangleSize,
         min: 0.5,
         max: 6,
-        visible: useTriangleParticles,
+        visible: useTriangleParticles
       },
       shadowDarkness: {
         value: shadowDarkness,
         min: 0,
         max: 1,
-        label: "shadow",
+        label: 'shadow'
       },
       color1: { value: color1 },
       color2: { value: color2 },
-      bgColor: { value: bgColor, label: "background" },
+      bgColor: { value: bgColor, label: 'background' }
     },
-    [
-      useTriangleParticles,
-      flipRatio,
-      triangleSize,
-      shadowDarkness,
-      color1,
-      color2,
-      bgColor,
-    ]
+    [useTriangleParticles, flipRatio, triangleSize, shadowDarkness, color1, color2, bgColor]
   ) as unknown as RenControls;
 
   type PostControls = {
@@ -115,10 +102,10 @@ export default function ControlsPanel() {
     motionBlur: boolean;
     motionBlurMaxDistance: number;
     motionBlurMultiplier: number;
-    motionBlurQuality: SceneSettings["motionBlurQuality"];
+    motionBlurQuality: SceneSettings['motionBlurQuality'];
   };
   const post = useControls(
-    "Post",
+    'Post',
     {
       fxaa: { value: fxaa },
       bloom: { value: bloom },
@@ -126,37 +113,37 @@ export default function ControlsPanel() {
         value: bloomRadius,
         min: 0,
         max: 3,
-        label: "bloom radius",
-        visible: bloom,
+        label: 'bloom radius',
+        visible: bloom
       },
       bloomAmount: {
         value: bloomAmount,
         min: 0,
         max: 3,
-        label: "bloom amount",
-        visible: bloom,
+        label: 'bloom amount',
+        visible: bloom
       },
       motionBlur: { value: motionBlur },
       motionBlurMaxDistance: {
         value: motionBlurMaxDistance,
         min: 1,
         max: 300,
-        label: "motion distance",
-        visible: motionBlur,
+        label: 'motion distance',
+        visible: motionBlur
       },
       motionBlurMultiplier: {
         value: motionBlurMultiplier,
         min: 0.1,
         max: 15,
-        label: "motion multiplier",
-        visible: motionBlur,
+        label: 'motion multiplier',
+        visible: motionBlur
       },
       motionBlurQuality: {
         value: motionBlurQuality,
         options: motionBlurQualityList,
-        label: "motion quality",
-        visible: motionBlur,
-      },
+        label: 'motion quality',
+        visible: motionBlur
+      }
     },
     [
       fxaa,
@@ -166,7 +153,7 @@ export default function ControlsPanel() {
       motionBlur,
       motionBlurMaxDistance,
       motionBlurMultiplier,
-      motionBlurQuality,
+      motionBlurQuality
     ]
   ) as unknown as PostControls;
 
@@ -176,12 +163,12 @@ export default function ControlsPanel() {
       // Legacy behavior: confirm + reload with URL param
       if (globalThis.window !== undefined) {
         const shouldReload = globalThis.window.confirm(
-          "Changing the particle amount will reload the page. Continue?"
+          'Changing the particle amount will reload the page. Continue?'
         );
         if (shouldReload) {
           try {
             const url = new URL(globalThis.window.location.href);
-            url.searchParams.set("amount", sim.amount);
+            url.searchParams.set('amount', sim.amount);
             globalThis.window.location.href = url.toString();
           } catch {
             // Fallback: just reload
@@ -194,12 +181,12 @@ export default function ControlsPanel() {
       s.setAmount(sim.amount);
     }
     const simUpdates: Array<[keyof SceneSettings, unknown, unknown]> = [
-      ["speed", sim.speed, speed],
-      ["dieSpeed", sim.dieSpeed, dieSpeed],
-      ["radius", sim.radius, radius],
-      ["curlSize", sim.curlSize, curlSize],
-      ["attraction", sim.attraction, attraction],
-      ["followMouse", sim.followMouse, followMouse],
+      ['speed', sim.speed, speed],
+      ['dieSpeed', sim.dieSpeed, dieSpeed],
+      ['radius', sim.radius, radius],
+      ['curlSize', sim.curlSize, curlSize],
+      ['attraction', sim.attraction, attraction],
+      ['followMouse', sim.followMouse, followMouse]
     ];
     for (const [key, next, curr] of simUpdates) {
       if (next !== curr) {
@@ -209,13 +196,13 @@ export default function ControlsPanel() {
 
     // Rendering updates
     const renUpdates: Array<[keyof SceneSettings, unknown, unknown]> = [
-      ["useTriangleParticles", ren.useTriangleParticles, useTriangleParticles],
-      ["flipRatio", ren.flipRatio, flipRatio],
-      ["triangleSize", ren.triangleSize, triangleSize],
-      ["shadowDarkness", ren.shadowDarkness, shadowDarkness],
-      ["color1", ren.color1, color1],
-      ["color2", ren.color2, color2],
-      ["bgColor", ren.bgColor, bgColor],
+      ['useTriangleParticles', ren.useTriangleParticles, useTriangleParticles],
+      ['flipRatio', ren.flipRatio, flipRatio],
+      ['triangleSize', ren.triangleSize, triangleSize],
+      ['shadowDarkness', ren.shadowDarkness, shadowDarkness],
+      ['color1', ren.color1, color1],
+      ['color2', ren.color2, color2],
+      ['bgColor', ren.bgColor, bgColor]
     ];
     for (const [key, next, curr] of renUpdates) {
       if (next !== curr) {
@@ -223,20 +210,16 @@ export default function ControlsPanel() {
       }
     }
 
-  // Post-processing updates (legacy allows independent toggles)
+    // Post-processing updates (legacy allows independent toggles)
     const postUpdates: Array<[keyof SceneSettings, unknown, unknown]> = [
-      ["fxaa", post.fxaa, fxaa],
-      ["bloom", post.bloom, bloom],
-      ["bloomRadius", post.bloomRadius, bloomRadius],
-      ["bloomAmount", post.bloomAmount, bloomAmount],
-      ["motionBlur", post.motionBlur, motionBlur],
-      [
-        "motionBlurMaxDistance",
-        post.motionBlurMaxDistance,
-        motionBlurMaxDistance,
-      ],
-      ["motionBlurMultiplier", post.motionBlurMultiplier, motionBlurMultiplier],
-      ["motionBlurQuality", post.motionBlurQuality, motionBlurQuality],
+      ['fxaa', post.fxaa, fxaa],
+      ['bloom', post.bloom, bloom],
+      ['bloomRadius', post.bloomRadius, bloomRadius],
+      ['bloomAmount', post.bloomAmount, bloomAmount],
+      ['motionBlur', post.motionBlur, motionBlur],
+      ['motionBlurMaxDistance', post.motionBlurMaxDistance, motionBlurMaxDistance],
+      ['motionBlurMultiplier', post.motionBlurMultiplier, motionBlurMultiplier],
+      ['motionBlurQuality', post.motionBlurQuality, motionBlurQuality]
     ];
     for (const [key, next, curr] of postUpdates) {
       if (next !== curr) {
@@ -269,7 +252,7 @@ export default function ControlsPanel() {
     motionBlur,
     motionBlurMaxDistance,
     motionBlurMultiplier,
-    motionBlurQuality,
+    motionBlurQuality
   ]);
 
   return null;
