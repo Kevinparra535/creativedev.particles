@@ -1,22 +1,23 @@
-import * as THREE from "three";
-import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
-import Simulator from "./Simulator";
-import MeshMotionMaterial from "../assets/postprocessing/motionBlur/MeshMotionMaterial";
-import DefaultSettings from "../config/settings.config";
-import { lightPosition } from "./LegacyLights";
-import { mouse3d, initAnimation } from "./LegacyControls";
+import * as THREE from 'three';
+import { useFrame, useThree } from '@react-three/fiber';
+import { useEffect, useMemo, useRef } from 'react';
 
-import {
-  particlesVertexShader,
-  particlesFragmentShader,
-  particlesDistanceVertexShader,
-  particlesDistanceFragmentShader,
-  particlesMotionVertexShader,
-  trianglesVertexShader,
-  trianglesDistanceShader,
-  trianglesMotionShader,
-} from "../assets/glsl/particlesShaders";
+import particlesVertexShader from '@/assets/glsl1/particles.vert.glsl?raw';
+import particlesFragmentShader from '@/assets/glsl1/particles.frag.glsl?raw';
+import particlesDistanceVertexShader from '@/assets/glsl1/particlesDistance.vert.glsl?raw';
+import particlesDistanceFragmentShader from '@/assets/glsl1/particlesDistance.frag.glsl?raw';
+import particlesMotionVertexShader from '@/assets/glsl1/particlesMotion.vert.glsl?raw';
+import trianglesVertexShader from '@/assets/glsl1/triangles.vert.glsl?raw';
+import trianglesDistanceShader from '@/assets/glsl1/trianglesDistance.vert.glsl?raw';
+import trianglesMotionShader from '@/assets/glsl1/trianglesMotion.vert.glsl?raw';
+
+import MeshMotionMaterial from '@/assets/postprocessing/motionBlur/MeshMotionMaterial';
+
+import Simulator from './Simulator';
+import { lightPosition } from './LegacyLights';
+import { mouse3d, initAnimation } from './LegacyControls';
+
+import DefaultSettings from '@/config/settings.config';
 
 const LegacyParticles = () => {
   const { gl, camera } = useThree();
@@ -48,9 +49,9 @@ const LegacyParticles = () => {
         {
           texturePosition: { value: new THREE.Texture() },
           color1: { value: new THREE.Color(DefaultSettings.color1) },
-          color2: { value: new THREE.Color(DefaultSettings.color2) },
-        },
-      ]),
+          color2: { value: new THREE.Color(DefaultSettings.color2) }
+        }
+      ])
     }),
     []
   );
@@ -66,9 +67,9 @@ const LegacyParticles = () => {
           color1: { value: new THREE.Color(DefaultSettings.color1) },
           color2: { value: new THREE.Color(DefaultSettings.color2) },
           size: { value: 1 },
-          cameraMatrix: { value: new THREE.Matrix4() },
-        },
-      ]),
+          cameraMatrix: { value: new THREE.Matrix4() }
+        }
+      ])
     }),
     []
   );
@@ -77,7 +78,7 @@ const LegacyParticles = () => {
   const pointsDistanceUniforms = useMemo(
     () => ({
       lightPos: { value: new THREE.Vector3(0, 0, 0) },
-      texturePosition: { value: new THREE.Texture() },
+      texturePosition: { value: new THREE.Texture() }
     }),
     []
   );
@@ -86,7 +87,7 @@ const LegacyParticles = () => {
     () => ({
       lightPos: { value: new THREE.Vector3(0, 0, 0) },
       texturePosition: { value: new THREE.Texture() },
-      flipRatio: { value: 0 },
+      flipRatio: { value: 0 }
     }),
     []
   );
@@ -95,7 +96,7 @@ const LegacyParticles = () => {
   const pointsMotionUniforms = useMemo(
     () => ({
       texturePosition: { value: new THREE.Texture() },
-      texturePrevPosition: { value: new THREE.Texture() },
+      texturePrevPosition: { value: new THREE.Texture() }
     }),
     []
   );
@@ -104,7 +105,7 @@ const LegacyParticles = () => {
     () => ({
       texturePosition: { value: new THREE.Texture() },
       texturePrevPosition: { value: new THREE.Texture() },
-      flipRatio: { value: 0 },
+      flipRatio: { value: 0 }
     }),
     []
   );
@@ -136,10 +137,9 @@ const LegacyParticles = () => {
         depthWrite: true,
         side: THREE.BackSide,
         blending: THREE.NoBlending,
-        glslVersion: THREE.GLSL3,
+        glslVersion: THREE.GLSL3
       });
-      (pointsRef.current as any).customDistanceMaterial =
-        pointsDistanceMatRef.current;
+      (pointsRef.current as any).customDistanceMaterial = pointsDistanceMatRef.current;
     }
 
     // Points motion material (for motion blur)
@@ -151,7 +151,7 @@ const LegacyParticles = () => {
         depthTest: true,
         depthWrite: true,
         side: THREE.DoubleSide,
-        blending: THREE.NoBlending,
+        blending: THREE.NoBlending
       });
       (pointsRef.current as any).motionMaterial = pointsMotionMatRef.current;
     }
@@ -166,10 +166,9 @@ const LegacyParticles = () => {
         depthWrite: true,
         side: THREE.BackSide,
         blending: THREE.NoBlending,
-        glslVersion: THREE.GLSL3,
+        glslVersion: THREE.GLSL3
       });
-      (trianglesRef.current as any).customDistanceMaterial =
-        trianglesDistanceMatRef.current;
+      (trianglesRef.current as any).customDistanceMaterial = trianglesDistanceMatRef.current;
     }
 
     // Triangles motion material (for motion blur)
@@ -181,10 +180,9 @@ const LegacyParticles = () => {
         depthTest: true,
         depthWrite: true,
         side: THREE.DoubleSide,
-        blending: THREE.NoBlending,
+        blending: THREE.NoBlending
       });
-      (trianglesRef.current as any).motionMaterial =
-        trianglesMotionMatRef.current;
+      (trianglesRef.current as any).motionMaterial = trianglesMotionMatRef.current;
     }
 
     // Enable shadows like legacy
@@ -205,15 +203,13 @@ const LegacyParticles = () => {
       const mat = trianglesRef.current.material as THREE.ShaderMaterial;
       (mat.uniforms.color1.value as THREE.Color).copy(col1.current);
       (mat.uniforms.color2.value as THREE.Color).copy(col2.current);
-      (mat.uniforms.cameraMatrix.value as THREE.Matrix4).copy(
-        camera.matrixWorld
-      );
+      (mat.uniforms.cameraMatrix.value as THREE.Matrix4).copy(camera.matrixWorld);
     }
   }, [
     pointsDistanceUniforms,
     trianglesDistanceUniforms,
     pointsMotionUniforms,
-    trianglesMotionUniforms,
+    trianglesMotionUniforms
   ]);
 
   useEffect(() => {
@@ -253,9 +249,7 @@ const LegacyParticles = () => {
         | undefined;
       if (distanceMat) {
         (distanceMat.uniforms.texturePosition.value as THREE.Texture) = posTex;
-        (distanceMat.uniforms.lightPos.value as THREE.Vector3).copy(
-          lightPosition
-        );
+        (distanceMat.uniforms.lightPos.value as THREE.Vector3).copy(lightPosition);
       }
 
       // Update motion material
@@ -274,19 +268,16 @@ const LegacyParticles = () => {
       (tMat.uniforms.texturePosition.value as THREE.Texture) = posTex;
       (tMat.uniforms.color1.value as THREE.Color).copy(col1.current);
       (tMat.uniforms.color2.value as THREE.Color).copy(col2.current);
-      (tMat.uniforms.cameraMatrix.value as THREE.Matrix4).copy(
-        camera.matrixWorld
-      );
+      (tMat.uniforms.cameraMatrix.value as THREE.Matrix4).copy(camera.matrixWorld);
       tMat.uniforms.flipRatio.value = flipRef.current ^= 1;
 
       // Update distance material
-      const distanceMat = (trianglesRef.current as any)
-        .customDistanceMaterial as THREE.ShaderMaterial | undefined;
+      const distanceMat = (trianglesRef.current as any).customDistanceMaterial as
+        | THREE.ShaderMaterial
+        | undefined;
       if (distanceMat) {
         (distanceMat.uniforms.texturePosition.value as THREE.Texture) = posTex;
-        (distanceMat.uniforms.lightPos.value as THREE.Vector3).copy(
-          lightPosition
-        );
+        (distanceMat.uniforms.lightPos.value as THREE.Vector3).copy(lightPosition);
         distanceMat.uniforms.flipRatio.value = flipRef.current;
       }
 
@@ -301,10 +292,8 @@ const LegacyParticles = () => {
       }
     }
 
-    if (pointsRef.current)
-      pointsRef.current.visible = !DefaultSettings.useTriangleParticles;
-    if (trianglesRef.current)
-      trianglesRef.current.visible = DefaultSettings.useTriangleParticles;
+    if (pointsRef.current) pointsRef.current.visible = !DefaultSettings.useTriangleParticles;
+    if (trianglesRef.current) trianglesRef.current.visible = DefaultSettings.useTriangleParticles;
   });
 
   return (
@@ -312,25 +301,20 @@ const LegacyParticles = () => {
       {/* Points */}
       <points ref={pointsRef} visible={!DefaultSettings.useTriangleParticles}>
         <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[lookups, 3]} />
+          <bufferAttribute attach='attributes-position' args={[lookups, 3]} />
         </bufferGeometry>
         <shaderMaterial
           glslVersion={THREE.GLSL3}
           vertexShader={particlesVertexShader}
           fragmentShader={particlesFragmentShader}
-          uniforms={
-            pointsUniforms as unknown as { [k: string]: THREE.IUniform }
-          }
+          uniforms={pointsUniforms as unknown as { [k: string]: THREE.IUniform }}
           blending={THREE.NoBlending}
           depthWrite
         />
       </points>
 
       {/* Triangles */}
-      <mesh
-        ref={trianglesRef as any}
-        visible={DefaultSettings.useTriangleParticles}
-      >
+      <mesh ref={trianglesRef as any} visible={DefaultSettings.useTriangleParticles}>
         <bufferGeometry>
           {(() => {
             const count = W * H;
@@ -348,7 +332,7 @@ const LegacyParticles = () => {
               Math.sin(angle),
               Math.cos(angle),
               Math.sin(angle * 3),
-              Math.cos(angle * 3),
+              Math.cos(angle * 3)
             ];
             const pos = new Float32Array(count * 3 * 3);
             const posFlip = new Float32Array(count * 3 * 3);
@@ -392,12 +376,9 @@ const LegacyParticles = () => {
             }
             return (
               <>
-                <bufferAttribute attach="attributes-position" args={[pos, 3]} />
-                <bufferAttribute
-                  attach="attributes-positionFlip"
-                  args={[posFlip, 3]}
-                />
-                <bufferAttribute attach="attributes-fboUV" args={[fboUV, 2]} />
+                <bufferAttribute attach='attributes-position' args={[pos, 3]} />
+                <bufferAttribute attach='attributes-positionFlip' args={[posFlip, 3]} />
+                <bufferAttribute attach='attributes-fboUV' args={[fboUV, 2]} />
               </>
             );
           })()}
@@ -407,9 +388,7 @@ const LegacyParticles = () => {
           glslVersion={THREE.GLSL3}
           vertexShader={trianglesVertexShader}
           fragmentShader={particlesFragmentShader}
-          uniforms={
-            trianglesUniforms as unknown as { [k: string]: THREE.IUniform }
-          }
+          uniforms={trianglesUniforms as unknown as { [k: string]: THREE.IUniform }}
           blending={THREE.NoBlending}
           depthWrite
         />

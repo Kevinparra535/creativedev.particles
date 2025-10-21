@@ -2,7 +2,7 @@ import * as React from "react";
 import * as THREE from "three";
 import { useThree, useFrame } from "@react-three/fiber";
 import DefaultSettings from "../../../config/settings.config";
-import { positionFrag, quadVert } from "../../../assets/glsl/simulationShaders";
+import { positionFrag, quadVert } from "../../../assets/glsl3/simulationShaders";
 import {
   particlesFragmentShader,
   particlesVertexShader,
@@ -12,7 +12,7 @@ import {
   particlesDistanceVertexShader,
   particlesDistanceFragmentShader,
   trianglesDistanceShader,
-} from "../../../assets/glsl/particlesShaders";
+} from "../../../assets/glsl3/particlesShaders";
 import { createPingPong } from "../../../utils/fboHelper";
 import MeshMotionMaterial from "../../../assets/postprocessing/motionBlur/MeshMotionMaterial";
 
