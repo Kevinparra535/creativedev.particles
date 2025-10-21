@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import * as fboHelper from "../utils/fboHelper";
+import * as fboHelper from "../../utils/fboHelper";
 
 /**
  * Legacy-compatible Effect Composer - exact replication of effectComposer.js

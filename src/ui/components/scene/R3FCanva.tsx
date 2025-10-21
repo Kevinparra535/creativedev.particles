@@ -1,10 +1,10 @@
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
-import Scene1 from "../scenes/Scene1";
-import DefaultSettings from "../../config/settings.config";
-import LegacyPostProcessing from "./LegacyPostProcessing";
-import { useSceneSettings } from "../hooks/useSceneSettings";
+import Scene1 from "../../scenes/Scene1";
+import DefaultSettings from "../../../config/settings.config";
+import LegacyPostProcessing from "../../../legacy/LegacyPostProcessing";
+import { useSceneSettings } from "../../hooks/useSceneSettings";
 
 // Componente principal con controles de color
 const R3FCanva = () => {

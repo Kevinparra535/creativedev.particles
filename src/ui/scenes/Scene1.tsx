@@ -1,10 +1,10 @@
 import OrbitControls from "../components/controls/OrbitControls";
 import AdaptiveParticles from "../components/particles/AdaptiveParticles";
 import { useSceneSettings } from "../hooks/useSceneSettings";
-import ControlsPanel from "../components/ControlsPanel";
 import { useEffect } from "react";
 import Lights from "../components/scene/Lights";
 import Floor from "../components/scene/Floor";
+import ControlsPanel from "../components/controls/ControlsPanel";
 
 const Scene1 = () => {
   const s = useSceneSettings();
@@ -22,7 +22,7 @@ const Scene1 = () => {
     return () => globalThis.removeEventListener("keyup", onKeyUp);
   }, [s]);
   return (
-    <>
+    <>s
       <Lights />
       <Floor />
       <ControlsPanel />

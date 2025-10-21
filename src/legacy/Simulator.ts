@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 import DefaultSettings from "../config/settings.config";
-import { positionFrag, quadVert, throughFrag } from "../glsl/simulationShaders";
+import { positionFrag, quadVert, throughFrag } from "../assets/glsl/simulationShaders";
 
 export class Simulator {
   renderer: THREE.WebGLRenderer;

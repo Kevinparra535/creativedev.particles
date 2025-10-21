@@ -4,7 +4,7 @@ import {
   FXAA as FXAAEffect,
 } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
-import { useSceneSettings } from "../hooks/useSceneSettings";
+import { useSceneSettings } from "../../hooks/useSceneSettings";
 
 type Props = {
   enabled?: boolean;

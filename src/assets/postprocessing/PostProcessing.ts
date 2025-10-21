@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import * as fboHelper from "../utils/fboHelper";
+import * as fboHelper from "../../utils/fboHelper";
 import effectComposer from "./EffectComposer";
 import FXAAEffect from "./effects/FXAAEffect";
 import BloomEffect from "./effects/BloomEffect";

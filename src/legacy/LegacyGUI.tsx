@@ -9,7 +9,7 @@ import type {
   MotionBlurQualityKey,
   AmountKey,
 } from "../config/settings.config";
-import PostProcessing from "../postprocessing/PostProcessing";
+import PostProcessing from "../assets/postprocessing/PostProcessing";
 
 // Global refs for motion blur and bloom effects (legacy compatibility)
 export const motionBlurRef = {

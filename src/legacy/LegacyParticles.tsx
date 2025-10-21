@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import Simulator from "./Simulator";
-import MeshMotionMaterial from "../postprocessing/motionBlur/MeshMotionMaterial";
+import MeshMotionMaterial from "../assets/postprocessing/motionBlur/MeshMotionMaterial";
 import DefaultSettings from "../config/settings.config";
 import { lightPosition } from "./LegacyLights";
 import { mouse3d, initAnimation } from "./LegacyControls";
@@ -16,7 +16,7 @@ import {
   trianglesVertexShader,
   trianglesDistanceShader,
   trianglesMotionShader,
-} from "../glsl/particlesShaders";
+} from "../assets/glsl/particlesShaders";
 
 const LegacyParticles = () => {
   const { gl, camera } = useThree();

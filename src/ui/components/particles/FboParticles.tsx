@@ -2,7 +2,7 @@ import * as React from "react";
 import * as THREE from "three";
 import { useThree, useFrame } from "@react-three/fiber";
 import DefaultSettings from "../../../config/settings.config";
-import { positionFrag, quadVert } from "../../../glsl/simulationShaders";
+import { positionFrag, quadVert } from "../../../assets/glsl/simulationShaders";
 import {
   particlesFragmentShader,
   particlesVertexShader,
@@ -12,9 +12,9 @@ import {
   particlesDistanceVertexShader,
   particlesDistanceFragmentShader,
   trianglesDistanceShader,
-} from "../../../glsl/particlesShaders";
+} from "../../../assets/glsl/particlesShaders";
 import { createPingPong } from "../../../utils/fboHelper";
-import MeshMotionMaterial from "../../../postprocessing/motionBlur/MeshMotionMaterial";
+import MeshMotionMaterial from "../../../assets/postprocessing/motionBlur/MeshMotionMaterial";
 
 type Props = {
   size?: number; // square fallback

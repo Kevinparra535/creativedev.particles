@@ -2,7 +2,7 @@ import glsl from "glslify";
 import Effect from "../Effect";
 import * as THREE from "three";
 import effectComposer from "../EffectComposer";
-import * as fboHelper from "../../utils/fboHelper";
+import * as fboHelper from "../../../utils/fboHelper";
 
 /**
  * Bloom Effect - Exact Legacy Compatible Implementation

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import Effect from "../Effect";
 import effectComposer from "../EffectComposer";
-import * as fboHelper from "../../utils/fboHelper";
+import * as fboHelper from "../../../utils/fboHelper";
 import glsl from "glslify";
 
 /**
