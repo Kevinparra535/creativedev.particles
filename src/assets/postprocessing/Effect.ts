@@ -1,6 +1,10 @@
-import * as THREE from "three";
-import * as fboHelper from "../../utils/fboHelper";
-import effectComposer from "./EffectComposer";
+import * as THREE from 'three';
+
+import effectComposer from './EffectComposer';
+
+import * as fboHelper from '@/utils/fboHelper';
+
+import shaderMaterialQuadVertexShader from '@/assets/postprocessing/effects/shaderMaterialQuad.vert.glsl?raw';
 
 /**
  * Legacy-compatible Effect base class for postprocessing effects
@@ -18,8 +22,8 @@ export default class Effect {
   constructor() {
     this.uniforms = {};
     this.enabled = true;
-    this.vertexShader = "";
-    this.fragmentShader = "";
+    this.vertexShader = '';
+    this.fragmentShader = '';
     this.isRawMaterial = true;
     this.addRawShaderPrefix = true;
     this.needsResize = false;
@@ -35,15 +39,15 @@ export default class Effect {
       uniforms: {
         u_texture: { value: null as unknown as THREE.Texture },
         u_resolution: { value: new THREE.Vector2() },
-        u_aspect: { value: 1 },
+        u_aspect: { value: 1 }
       },
       enabled: true,
-      vertexShader: "",
-      fragmentShader: "",
+      vertexShader: '',
+      fragmentShader: '',
       isRawMaterial: true,
       addRawShaderPrefix: true,
       glslVersion: THREE.GLSL3,
-      ...cfg,
+      ...cfg
     });
 
     // Set default vertex shader if not provided
@@ -61,9 +65,7 @@ export default class Effect {
    * Create shader material for the effect
    */
   private createMaterial() {
-    const MaterialClass = this.isRawMaterial
-      ? THREE.RawShaderMaterial
-      : THREE.ShaderMaterial;
+    const MaterialClass = this.isRawMaterial ? THREE.RawShaderMaterial : THREE.ShaderMaterial;
 
     let vertexShader = this.vertexShader;
     let fragmentShader = this.fragmentShader;
@@ -71,10 +73,10 @@ export default class Effect {
     // Add raw shader prefix if needed
     if (this.isRawMaterial && this.addRawShaderPrefix) {
       const prefix = fboHelper.getRawShaderPrefix();
-      if (!vertexShader.includes("precision")) {
+      if (!vertexShader.includes('precision')) {
         vertexShader = prefix + vertexShader;
       }
-      if (!fragmentShader.includes("precision")) {
+      if (!fragmentShader.includes('precision')) {
         fragmentShader = prefix + fragmentShader;
       }
     }
@@ -84,7 +86,7 @@ export default class Effect {
       vertexShader,
       fragmentShader,
       // Ensure GLSL3 so we can use in/out and layout qualifiers in shaders
-      glslVersion: THREE.GLSL3,
+      glslVersion: THREE.GLSL3
     });
   }
 
@@ -109,11 +111,7 @@ export default class Effect {
    * @param fromRenderTarget Input render target
    * @param toScreen Whether to render to screen (last effect)
    */
-  render(
-    dt: number,
-    fromRenderTarget?: THREE.WebGLRenderTarget,
-    toScreen?: boolean
-  ) {
+  render(dt: number, fromRenderTarget?: THREE.WebGLRenderTarget, toScreen?: boolean) {
     if (!this.enabled || !this.material) return;
 
     // Set input texture from render target (ping-pong input)
@@ -140,24 +138,7 @@ export default class Effect {
    * Get shader material quad vertex shader (non-raw)
    */
   private getShaderMaterialQuadVertexShader(): string {
-    return `
-    // --- Inputs (Formerly attributes) ---
-    in vec3 position;
-    in vec2 uv;
-
-    // --- Output (Formerly varying) ---
-    out vec2 vUv;
-
-    // --- Uniforms (Standard matrices must be explicitly defined) ---
-    uniform mat4 projectionMatrix;
-    uniform mat4 modelViewMatrix;
-
-    void main() {
-        vUv = uv; // Assign the input UV to the output varying
-        // Perform matrix multiplication using explicit uniforms
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-    `;
+    return shaderMaterialQuadVertexShader;
   }
 
   /**
