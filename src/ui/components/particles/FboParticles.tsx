@@ -179,6 +179,7 @@ export default function FboParticles(props: Readonly<Props>) {
 
   // Mouse 3D target on z=0 plane
   const mouse3d = React.useRef(new THREE.Vector3());
+  const followTimeRef = React.useRef(0);
   const planeZ = React.useMemo(
     () => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0),
     []
@@ -432,14 +433,29 @@ export default function FboParticles(props: Readonly<Props>) {
     }
   }, [color1, color2]);
 
-  // Update mouse target in world space (z=0 plane)
-  useFrame(({ pointer }) => {
-    // pointer is -1..1 in r3f
-    const ndc = new THREE.Vector2(pointer.x, pointer.y);
-    raycaster.setFromCamera(ndc, camera);
-    const hit = new THREE.Vector3();
-    if (raycaster.ray.intersectPlane(planeZ, hit)) {
-      mouse3d.current.copy(hit);
+  // Update follow target: either mouse on z=0 plane or synthetic follow point (legacy)
+  useFrame(({ pointer }, delta) => {
+    if (followMouse) {
+      // pointer is -1..1 in r3f
+      const ndc = new THREE.Vector2(pointer.x, pointer.y);
+      raycaster.setFromCamera(ndc, camera);
+      const hit = new THREE.Vector3();
+      if (raycaster.ray.intersectPlane(planeZ, hit)) {
+        mouse3d.current.copy(hit);
+      }
+    } else {
+      // Legacy follow path when followMouse is disabled
+      followTimeRef.current += delta * Math.max(0.0001, speed);
+      const t = followTimeRef.current;
+      const r = 200; // 100 on mobile in legacy; keep 200 by default
+      const h = 60;  // 40 on mobile in legacy; keep 60 by default
+      const follow = new THREE.Vector3(
+        Math.cos(t) * r,
+        Math.cos(t * 4.0) * h,
+        Math.sin(t * 2.0) * r
+      );
+      // Lerp like legacy (0.2)
+      mouse3d.current.lerp(follow, 0.2);
     }
   });
 
@@ -478,7 +494,9 @@ export default function FboParticles(props: Readonly<Props>) {
     simMat.uniforms.textureDefaultPosition.value =
       defaultRTRef.current?.texture ?? null;
     simMat.uniforms.initAnimation.value = initAnim.current;
-    (simMat.uniforms.mouse3d.value as THREE.Vector3).copy(mouse3d.current);
+  // Always push current target into shader; keep followMouse enabled so we blend towards the target
+  (simMat.uniforms.mouse3d.value as THREE.Vector3).copy(mouse3d.current);
+  simMat.uniforms.followMouse.value = 1; // drive towards target regardless of UI toggle (legacy style)
 
     // Render simulation step to write target
     simMeshRef.current.material = simMat;
