@@ -141,11 +141,22 @@ export default class Effect {
    */
   private getShaderMaterialQuadVertexShader(): string {
     return `
-      varying vec2 vUv;
-      void main() {
-        vUv = uv;
+    // --- Inputs (Formerly attributes) ---
+    in vec3 position;
+    in vec2 uv;
+
+    // --- Output (Formerly varying) ---
+    out vec2 vUv;
+
+    // --- Uniforms (Standard matrices must be explicitly defined) ---
+    uniform mat4 projectionMatrix;
+    uniform mat4 modelViewMatrix;
+
+    void main() {
+        vUv = uv; // Assign the input UV to the output varying
+        // Perform matrix multiplication using explicit uniforms
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
+    }
     `;
   }
 

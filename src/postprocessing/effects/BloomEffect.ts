@@ -51,16 +51,20 @@ export default class BloomEffect extends Effect {
       uniform sampler2D u_blurTexture;
       uniform float u_amount;
 
-      varying vec2 v_uv;
+      in vec2 v_uv; // Change varying to in
+
+      out vec4 fragColor; // Define a new output variable
 
       void main() {
-        vec3 baseColor = texture2D(u_texture, v_uv).rgb;
-        vec3 blurColor = texture2D(u_blurTexture, v_uv).rgb;
-        
-        // Exact legacy screen blend
-        vec3 color = mix(baseColor, 1.0 - ((1.0 - baseColor) * (1.0 - blurColor)), u_amount);
-        
-        gl_FragColor = vec4(color, 1.0);
+          // Change texture2D() to texture()
+          vec3 baseColor = texture(u_texture, v_uv).rgb;
+          vec3 blurColor = texture(u_blurTexture, v_uv).rgb;
+
+          // Exact legacy screen blend calculation remains the same
+          vec3 color = mix(baseColor, 1.0 - ((1.0 - baseColor) * (1.0 - blurColor)), u_amount);
+
+          // Assign the final output to the new fragColor variable
+          fragColor = vec4(color, 1.0);
       }
     `;
   }
@@ -70,33 +74,36 @@ export default class BloomEffect extends Effect {
    */
   private getBloomBlurShader(): string {
     return glsl`
-      uniform sampler2D u_texture;
-      uniform vec2 u_delta;
+    uniform sampler2D u_texture;
+    uniform vec2 u_delta;
 
-      varying vec2 v_uv;
+    in vec2 v_uv; // Change varying to in
 
-      void main() {
-        vec3 color = texture2D(u_texture, v_uv).rgb * 0.1633;
+    out vec4 fragColor; // Define a new output variable
+
+    void main() {
+        // Change texture2D() to texture()
+        vec3 color = texture(u_texture, v_uv).rgb * 0.1633;
 
         vec2 delta = u_delta;
-        color += texture2D(u_texture, v_uv - delta).rgb * 0.1531;
-        color += texture2D(u_texture, v_uv + delta).rgb * 0.1531;
+        color += texture(u_texture, v_uv - delta).rgb * 0.1531;
+        color += texture(u_texture, v_uv + delta).rgb * 0.1531;
 
         delta += u_delta;
-        color += texture2D(u_texture, v_uv - delta).rgb * 0.12245;
-        color += texture2D(u_texture, v_uv + delta).rgb * 0.12245;
+        color += texture(u_texture, v_uv - delta).rgb * 0.12245;
+        color += texture(u_texture, v_uv + delta).rgb * 0.12245;
 
         delta += u_delta;
-        color += texture2D(u_texture, v_uv - delta).rgb * 0.0918;
-        color += texture2D(u_texture, v_uv + delta).rgb * 0.0918;
+        color += texture(u_texture, v_uv - delta).rgb * 0.0918;
+        color += texture(u_texture, v_uv + delta).rgb * 0.0918;
 
         delta += u_delta;
-        color += texture2D(u_texture, v_uv - delta).rgb * 0.051;
-        color += texture2D(u_texture, v_uv + delta).rgb * 0.051;
+        color += texture(u_texture, v_uv - delta).rgb * 0.051;
+        color += texture(u_texture, v_uv + delta).rgb * 0.051;
 
-        gl_FragColor = vec4(color, 1.0);
-      }
-      }
+        // Assign final output to the new fragColor variable
+        fragColor = vec4(color, 1.0);
+    }
     `;
   }
 

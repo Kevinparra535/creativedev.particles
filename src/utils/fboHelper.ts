@@ -59,41 +59,39 @@ export function init(renderer: THREE.WebGLRenderer): void {
   _camera.position.setZ(1);
 
   // === Shaders GLSL3 (sin #version: Three la inyecta al compilar con glslVersion: THREE.GLSL3) ===
-  const COPY_VERT_GLSL3 = glsl`
-    precision highp float;
+  const QUAD_VERT = glsl`
+  in vec3 position; // Change attribute to in
+  in vec2 uv;       // Change attribute to in
 
-    in vec3 position;
-    in vec2 uv;
+  out vec2 v_uv;   // Change varying to out
 
-    out vec2 v_uv;
-
-    void main() {
-        v_uv = uv;
-        gl_Position = vec4(position, 1.0);
-    }
+  void main() {
+      v_uv = uv;
+      gl_Position = vec4( position, 1.0 );
+  }
   `;
 
-  const COPY_FRAG_GLSL3 = glsl`
-    precision highp float;
+  const QUAD_FRAG = glsl`
+  uniform sampler2D u_texture;
 
-    uniform sampler2D u_texture;
+  in vec2 v_uv; // Change varying to in
 
-    in vec2 v_uv;
-    out vec4 outColor;
+  out vec4 fragColor; // Define a new output variable
 
-    void main() {
-        outColor = texture(u_texture, v_uv);
-    }
+  void main() {
+      // Change texture2D() to texture() and assign to the new output variable
+      fragColor = texture( u_texture, v_uv );
+  }
   `;
 
   // Guardamos para getVertexShader() / legacy
-  _vertexShader = COPY_VERT_GLSL3;
-  _vertexShaderPublic = COPY_VERT_GLSL3;
+  _vertexShader = QUAD_VERT;
+  _vertexShaderPublic = QUAD_VERT;
 
   _copyMaterial = new THREE.RawShaderMaterial({
     uniforms: { u_texture: { value: null as unknown as THREE.Texture } },
-    vertexShader: COPY_VERT_GLSL3,
-    fragmentShader: COPY_FRAG_GLSL3,
+    vertexShader: QUAD_VERT,
+    fragmentShader: QUAD_FRAG,
     glslVersion: THREE.GLSL3, // 👈 imprescindible
     depthWrite: false,
     depthTest: false,
@@ -143,7 +141,6 @@ export function render(
 ): void {
   if (!_renderer || !_scene || !_camera || !_mesh) return;
   _mesh.material = material;
-
   if (renderTarget) {
     _renderer.setRenderTarget(renderTarget);
     _renderer.render(_scene, _camera);
