@@ -53,4 +53,3 @@ void main() {
     v_motion = (pos.xy / pos.w - prevPos.xy / prevPos.w) * 0.5;
 
 }
-s

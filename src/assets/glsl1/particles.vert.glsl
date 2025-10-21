@@ -21,11 +21,13 @@
 
 
 // GLSL 3
-
 uniform sampler2D texturePosition;
 
 out float vLife;
 // chunk(shadowmap_pars_vertex);
+
+#include <common>
+#include <shadowmap_pars_vertex>
 
 void main() {
 
@@ -39,4 +41,6 @@ void main() {
     vLife = positionInfo.w;
     gl_PointSize = 1300.0 / length(mvPosition.xyz) * smoothstep(0.0, 0.2, positionInfo.w);
     gl_Position = projectionMatrix * mvPosition;
+
+    #include <shadowmap_vertex>
 }

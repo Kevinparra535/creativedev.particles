@@ -182,7 +182,11 @@ export function getRenderTarget(
 
   if (list.length) {
     renderTarget = list.pop()!;
-    Object.assign(renderTarget, _renderTargetDefaultState);
+    // Restore default state explicitly (avoid shallow-assigning texture object)
+    (renderTarget as any).depthBuffer = _renderTargetDefaultState.depthBuffer;
+    if (renderTarget.texture) {
+      renderTarget.texture.generateMipmaps = _renderTargetDefaultState.texture.generateMipmaps;
+    }
   } else {
     renderTarget = fboHelper.createRenderTarget(
       width,

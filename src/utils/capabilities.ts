@@ -5,7 +5,7 @@ export function hasWebGL2(gl?: THREE.WebGLRenderer): boolean {
   if (gl) return gl.capabilities.isWebGL2;
   if (typeof document === "undefined") return false;
   const canvas = document.createElement("canvas");
-  return !!(canvas.getContext("webgl2") as WebGL2RenderingContext | null);
+  return !!canvas.getContext("webgl2");
 }
 
 export function shouldUseFallback(gl?: THREE.WebGLRenderer): boolean {

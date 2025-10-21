@@ -310,6 +310,7 @@ const LegacyParticles = () => {
           uniforms={pointsUniforms as unknown as { [k: string]: THREE.IUniform }}
           blending={THREE.NoBlending}
           depthWrite
+          lights
         />
       </points>
 
@@ -391,6 +392,7 @@ const LegacyParticles = () => {
           uniforms={trianglesUniforms as unknown as { [k: string]: THREE.IUniform }}
           blending={THREE.NoBlending}
           depthWrite
+          lights
         />
       </mesh>
     </>
