@@ -29,8 +29,7 @@ let _camera: THREE.Camera | null = null;
 let _mesh: THREE.Mesh | null = null;
 let _copyMaterial: THREE.RawShaderMaterial | null = null;
 
-// Mantengo estas dos por compatibilidad (aunque ya no se usan para prefijar)
-const _rawShaderPrefix = "";
+// Mantengo estas por compatibilidad (vertex shader is exposed for legacy consumers)
 let _vertexShader = "";
 
 // === Exposed accessors (legacy names via getters) ===
@@ -177,7 +176,8 @@ export function setColorState(state: ColorState): void {
 
 /** Legacy getters */
 export function getRawShaderPrefix(): string {
-  return _rawShaderPrefix;
+  // Return the runtime prefix computed from renderer precision (legacy parity)
+  return _rawPrefixPublic;
 }
 
 export function getVertexShader(): string {
