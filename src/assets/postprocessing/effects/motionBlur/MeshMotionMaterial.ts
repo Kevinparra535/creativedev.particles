@@ -1,8 +1,7 @@
-import * as THREE from "three";
-import {
-  motionBlurMotionFragShader,
-  motionBlurMotionVertexShader,
-} from "./motionBlurShaders";
+import * as THREE from 'three';
+
+import motionBlurMotionVertexShader from './motionBlurMotion.vert.glsl?raw';
+import motionBlurMotionFragShader from './motionBlurMotion.frag.glsl?raw';
 
 interface MeshMotionMaterialParameters {
   uniforms?: Record<string, THREE.IUniform>;
@@ -28,7 +27,7 @@ export default class MeshMotionMaterial extends THREE.ShaderMaterial {
       texturePosition: { value: null as unknown as THREE.Texture },
       texturePrevPosition: { value: null as unknown as THREE.Texture },
       flipRatio: { value: 0 },
-      size: { value: 1 },
+      size: { value: 1 }
     };
 
     // Merge with custom uniforms (like legacy fillIn)
@@ -42,7 +41,7 @@ export default class MeshMotionMaterial extends THREE.ShaderMaterial {
       depthWrite: parameters.depthWrite ?? true,
       side: parameters.side || THREE.FrontSide,
       blending: parameters.blending ?? THREE.NoBlending,
-      glslVersion: THREE.GLSL3,
+      glslVersion: THREE.GLSL3
     });
 
     // Store motionMultiplier property like legacy

@@ -14,7 +14,7 @@ import {
   trianglesDistanceShader,
 } from "../../../assets/glsl3/particlesShaders";
 import { createPingPong } from "../../../utils/fboHelper";
-import MeshMotionMaterial from "../../../assets/postprocessing/motionBlur/MeshMotionMaterial";
+import MeshMotionMaterial from "../../../assets/postprocessing/effects/motionBlur/MeshMotionMaterial";
 
 type Props = {
   size?: number; // square fallback

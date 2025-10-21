@@ -1,8 +1,14 @@
-import * as THREE from "three";
-import Effect from "../Effect";
-import effectComposer from "../EffectComposer";
-import * as fboHelper from "../../../utils/fboHelper";
-import glsl from "glslify";
+import * as THREE from 'three';
+
+import Effect from '../Effect';
+import effectComposer from '../EffectComposer';
+
+import * as fboHelper from '@/utils/fboHelper';
+
+import motionBlurFrag from './motionBlur/motionBlur.frag.glsl?raw';
+import motionBlurLinesFrag from './motionBlur/motionBlurLines.frag.glsl?raw';
+import motionBlurLinesVert from './motionBlur/motionBlurLines.vert.glsl?raw';
+import motionBlurSamplingFrag from './motionBlur/motionBlurSampling.frag.glsl?raw';
 
 /**
  * Motion Blur Effect
@@ -60,10 +66,9 @@ export default class MotionBlurEffect extends Effect {
     const gl = effectComposer.renderer?.getContext();
     if (
       gl &&
-      (!gl.getExtension("OES_texture_float") ||
-        !gl.getExtension("OES_texture_float_linear"))
+      (!gl.getExtension('OES_texture_float') || !gl.getExtension('OES_texture_float_linear'))
     ) {
-      console.warn("Motion Blur: No float linear support");
+      console.warn('Motion Blur: No float linear support');
     }
 
     // Create motion render target like legacy
@@ -76,12 +81,7 @@ export default class MotionBlurEffect extends Effect {
     this.motionRenderTarget.depthBuffer = true;
 
     // Create lines render target like legacy
-    this.linesRenderTarget = fboHelper.createRenderTarget(
-      1,
-      1,
-      THREE.RGBAFormat,
-      THREE.FloatType
-    );
+    this.linesRenderTarget = fboHelper.createRenderTarget(1, 1, THREE.RGBAFormat, THREE.FloatType);
 
     this.linesCamera = new THREE.Camera();
     this.linesCamera.position.z = 1;
@@ -91,11 +91,11 @@ export default class MotionBlurEffect extends Effect {
     super.init({
       uniforms: {
         u_lineAlphaMultiplier: { value: 1 },
-        u_linesTexture: { value: this.linesRenderTarget.texture },
+        u_linesTexture: { value: this.linesRenderTarget.texture }
       },
       fragmentShader: this.getMotionBlurShader(),
       isRawMaterial: true,
-      addRawShaderPrefix: false,
+      addRawShaderPrefix: false
     });
 
     // Initialize lines geometry and material like legacy
@@ -114,7 +114,7 @@ export default class MotionBlurEffect extends Effect {
         u_depthTest: { value: 0 },
         u_opacity: { value: 1 },
         u_leaning: { value: 0.5 },
-        u_depthBias: { value: 0.01 },
+        u_depthBias: { value: 0.01 }
       },
       vertexShader: this.getMotionBlurLinesVertexShader(),
       fragmentShader: this.getMotionBlurLinesFragShader(),
@@ -129,7 +129,7 @@ export default class MotionBlurEffect extends Effect {
       blendDstAlpha: THREE.OneFactor,
       depthTest: false,
       depthWrite: false,
-      transparent: true,
+      transparent: true
     });
 
     this.lines = new THREE.LineSegments(this.linesGeometry, this.linesMaterial);
@@ -144,19 +144,19 @@ export default class MotionBlurEffect extends Effect {
         u_maxDistance: { value: 1 },
         u_fadeStrength: { value: 1 },
         u_motionMultiplier: { value: 1 },
-        u_leaning: { value: 0.5 },
+        u_leaning: { value: 0.5 }
       },
       defines: {
-        SAMPLE_COUNT: sampleCount || 21,
+        SAMPLE_COUNT: sampleCount || 21
       },
       vertexShader: fboHelper.getVertexShader(),
       fragmentShader:
         fboHelper.getRawShaderPrefix() +
-        "#define SAMPLE_COUNT " +
+        '#define SAMPLE_COUNT ' +
         (sampleCount || 21) +
-        "\n" +
+        '\n' +
         this.getMotionBlurSamplingShader(),
-      glslVersion: THREE.GLSL3,
+      glslVersion: THREE.GLSL3
     });
   }
 
@@ -194,15 +194,9 @@ export default class MotionBlurEffect extends Effect {
 
       if (amount > currentLen) {
         this.linesPositions = new Float32Array(amount * 6);
-        this.linesPositionAttribute = new THREE.BufferAttribute(
-          this.linesPositions,
-          3
-        );
-        this.linesGeometry!.deleteAttribute("position");
-        this.linesGeometry!.setAttribute(
-          "position",
-          this.linesPositionAttribute
-        );
+        this.linesPositionAttribute = new THREE.BufferAttribute(this.linesPositions, 3);
+        this.linesGeometry!.deleteAttribute('position');
+        this.linesGeometry!.setAttribute('position', this.linesPositionAttribute);
       }
 
       let i6 = 0;
@@ -211,10 +205,8 @@ export default class MotionBlurEffect extends Effect {
         const x = i % linesWidth;
         const y = Math.trunc(i / linesWidth);
         if (noDithering || (x + (y & 1)) & 1) {
-          this.linesPositions![i6 + 0] = this.linesPositions![i6 + 3] =
-            (x + 0.5) / linesWidth;
-          this.linesPositions![i6 + 1] = this.linesPositions![i6 + 4] =
-            (y + 0.5) / linesHeight;
+          this.linesPositions![i6 + 0] = this.linesPositions![i6 + 3] = (x + 0.5) / linesWidth;
+          this.linesPositions![i6 + 1] = this.linesPositions![i6 + 4] = (y + 0.5) / linesHeight;
           this.linesPositions![i6 + 2] = 0;
           this.linesPositions![i6 + 5] = 0.001 + 0.999 * Math.random();
           i6 += 6;
@@ -243,10 +235,7 @@ export default class MotionBlurEffect extends Effect {
    * Custom render method exactly like legacy
    */
   render(dt: number, renderTarget: THREE.WebGLRenderTarget, toScreen: boolean) {
-    if (
-      this.prevUseDithering !== this.useDithering ||
-      this.prevUseSampling !== this.useSampling
-    ) {
+    if (this.prevUseDithering !== this.useDithering || this.prevUseSampling !== this.useSampling) {
       this.resize();
     }
 
@@ -261,9 +250,7 @@ export default class MotionBlurEffect extends Effect {
 
     // Set motion materials like legacy
     if (effectComposer.scene) {
-      effectComposer.scene.traverseVisible((obj: any) =>
-        this.setObjectBeforeState(obj)
-      );
+      effectComposer.scene.traverseVisible((obj: any) => this.setObjectBeforeState(obj));
       effectComposer.renderScene(this.motionRenderTarget);
 
       for (let i = 0, len = this.visibleCache.length; i < len; i++) {
@@ -277,18 +264,14 @@ export default class MotionBlurEffect extends Effect {
       this.linesMaterial!.uniforms.u_maxDistance.value = this.maxDistance;
       this.linesMaterial!.uniforms.u_jitter.value = this.jitter;
       this.linesMaterial!.uniforms.u_fadeStrength.value = this.fadeStrength;
-      this.linesMaterial!.uniforms.u_motionMultiplier.value =
-        this.motionMultiplier * fpsRatio;
+      this.linesMaterial!.uniforms.u_motionMultiplier.value = this.motionMultiplier * fpsRatio;
       this.linesMaterial!.uniforms.u_depthTest.value = this.depthTest ? 1 : 0;
       this.linesMaterial!.uniforms.u_opacity.value = this.opacity;
       this.linesMaterial!.uniforms.u_leaning.value = Math.max(
         0.001,
         Math.min(0.999, this.leaning)
       );
-      this.linesMaterial!.uniforms.u_depthBias.value = Math.max(
-        0.00001,
-        this.depthBias
-      );
+      this.linesMaterial!.uniforms.u_depthBias.value = Math.max(0.00001, this.depthBias);
       this.linesMaterial!.uniforms.u_texture.value = renderTarget.texture;
 
       effectComposer.renderer.setClearColor(0, 0);
@@ -303,8 +286,7 @@ export default class MotionBlurEffect extends Effect {
       // Use sampling method like legacy
       this.samplingMaterial!.uniforms.u_maxDistance.value = this.maxDistance;
       this.samplingMaterial!.uniforms.u_fadeStrength.value = this.fadeStrength;
-      this.samplingMaterial!.uniforms.u_motionMultiplier.value =
-        this.motionMultiplier * fpsRatio;
+      this.samplingMaterial!.uniforms.u_motionMultiplier.value = this.motionMultiplier * fpsRatio;
       this.samplingMaterial!.uniforms.u_leaning.value = Math.max(
         0.001,
         Math.min(0.999, this.leaning)
@@ -315,8 +297,7 @@ export default class MotionBlurEffect extends Effect {
     } else {
       // Use lines method like legacy
       if (this.uniforms.u_lineAlphaMultiplier) {
-        this.uniforms.u_lineAlphaMultiplier.value =
-          1 + (this.useDithering ? 1 : 0);
+        this.uniforms.u_lineAlphaMultiplier.value = 1 + (this.useDithering ? 1 : 0);
       }
       super.render(dt, renderTarget, toScreen);
     }
@@ -329,8 +310,7 @@ export default class MotionBlurEffect extends Effect {
     if (obj.motionMaterial) {
       obj._tmpMaterial = obj.material;
       obj.material = obj.motionMaterial;
-      obj.material.uniforms.u_motionMultiplier.value =
-        obj.material.motionMultiplier;
+      obj.material.uniforms.u_motionMultiplier.value = obj.material.motionMultiplier;
     } else if (obj.material) {
       obj.visible = false;
     }
@@ -345,9 +325,7 @@ export default class MotionBlurEffect extends Effect {
       obj.material = obj._tmpMaterial;
       obj._tmpMaterial = undefined;
       if (!this.skipMatrixUpdate) {
-        obj.motionMaterial.uniforms.u_prevModelViewMatrix.value.copy(
-          obj.modelViewMatrix
-        );
+        obj.motionMaterial.uniforms.u_prevModelViewMatrix.value.copy(obj.modelViewMatrix);
       }
     } else {
       obj.visible = true;
@@ -358,12 +336,12 @@ export default class MotionBlurEffect extends Effect {
    * Set quality using legacy quality keys
    * @param quality Quality key from settings
    */
-  setQuality(quality: "best" | "high" | "medium" | "low") {
+  setQuality(quality: 'best' | 'high' | 'medium' | 'low') {
     const qualityMap = {
       best: 1,
       high: 0.75,
       medium: 0.5,
-      low: 0.25,
+      low: 0.25
     };
 
     this.fadeStrength = qualityMap[quality] || 0.5;
@@ -378,161 +356,27 @@ export default class MotionBlurEffect extends Effect {
    * Get motion blur main shader (exact legacy GLSL1)
    */
   private getMotionBlurShader(): string {
-    return glsl`
-      precision highp float;
-
-      uniform sampler2D u_texture;
-      uniform sampler2D u_linesTexture;
-      uniform float u_lineAlphaMultiplier;
-
-      in vec2 v_uv;
-      out vec4 outColor;
-
-      void main() {
-          vec3 baseColor = texture(u_texture, v_uv).rgb;
-          vec4 linesColor = texture(u_linesTexture, v_uv);
-
-          // Mezcla alfa simple
-          float alpha = linesColor.a * u_lineAlphaMultiplier;
-          vec3 color = mix(baseColor, linesColor.rgb, alpha);
-
-          outColor = vec4(color, 1.0);
-      }
-
-    `;
+    return motionBlurFrag;
   }
 
   /**
    * Get motion blur lines vertex shader (exact legacy GLSL1)
    */
   private getMotionBlurLinesVertexShader(): string {
-    return glsl`
-      precision highp float;
-
-      in vec3 position;
-
-      uniform vec2 u_resolution;
-      uniform sampler2D u_motionTexture;
-      uniform float u_maxDistance;
-      uniform float u_jitter;            // (no usado aquí, lo conservo por API)
-      uniform float u_motionMultiplier;
-
-      out vec2 v_velocity;
-      out float v_alpha;
-
-      void main() {
-        vec2 uv = position.xy;
-
-        // Lee motion (xy = velocidad, z = depth si existiera)
-        vec2 velocity = texture(u_motionTexture, uv).xy * u_motionMultiplier;
-
-        float distance = length(velocity);
-
-        // Clamp de velocidad
-        if (distance > u_maxDistance) {
-          velocity = normalize(velocity) * u_maxDistance;
-        }
-
-        v_velocity = velocity;
-        v_alpha = min(distance / u_maxDistance, 1.0);
-
-        // Posición NDC del extremo de la línea
-        vec2 screenPos = uv * 2.0 - 1.0;
-        if (position.z > 0.5) {
-          screenPos += velocity / u_resolution * 2.0;
-        }
-
-        gl_Position = vec4(screenPos, 0.0, 1.0);
-      }
-    `;
+    return motionBlurLinesVert;
   }
 
   /**
    * Get motion blur lines fragment shader (exact legacy GLSL1)
    */
   private getMotionBlurLinesFragShader(): string {
-    return glsl`
-      precision highp float;
-
-      uniform sampler2D u_texture;  // corregido (en singular)
-      uniform float u_opacity;
-      uniform float u_fadeStrength;
-
-      in vec2 v_velocity;
-      in float v_alpha;
-
-      out vec4 outColor;
-
-      void main() {
-          float alpha = v_alpha * u_opacity * u_fadeStrength;
-          vec3 color = vec3(1.0); // Líneas blancas
-
-          outColor = vec4(color, alpha);
-      }
-    `;
+    return motionBlurLinesFrag;
   }
 
   /**
    * Get motion blur sampling shader (exact legacy GLSL1)
    */
   private getMotionBlurSamplingShader(): string {
-    return glsl`
-      precision highp float;
-
-      uniform sampler2D u_texture;
-      uniform sampler2D u_motionTexture;
-      uniform vec2 u_resolution;
-      uniform float u_maxDistance;
-      uniform float u_fadeStrength;     // (no usada aquí; puedes usarla para ajustar 'weight' si quieres)
-      uniform float u_motionMultiplier;
-      uniform float u_leaning;
-
-      in vec2 v_uv;
-
-      out vec4 outColor;
-
-      // Asegura un valor por defecto si no te lo pasa el bundler/loader
-      #ifndef SAMPLE_COUNT
-        #define SAMPLE_COUNT 8
-      #endif
-
-      void main() {
-        vec2 velocity = texture(u_motionTexture, v_uv).xy * u_motionMultiplier;
-
-        float distance = length(velocity);
-        if (distance > u_maxDistance) {
-          velocity = normalize(velocity) * u_maxDistance;
-          distance = u_maxDistance;
-        }
-
-        vec3 color = vec3(0.0);
-        float totalWeight = 0.0;
-
-        // Muestreo a lo largo del vector de movimiento
-        for (int i = 0; i < SAMPLE_COUNT; i++) {
-          float t = float(i) / float(SAMPLE_COUNT - 1);
-          t = mix(-u_leaning, 1.0 - u_leaning, t);
-
-          vec2 sampleUV = v_uv + velocity * t / u_resolution;
-
-          if (sampleUV.x >= 0.0 && sampleUV.x <= 1.0 &&
-              sampleUV.y >= 0.0 && sampleUV.y <= 1.0) {
-
-            float weight = 1.0 - abs(t);
-            // Si quieres usar u_fadeStrength: weight = pow(weight, u_fadeStrength);
-            color += texture(u_texture, sampleUV).rgb * weight;
-            totalWeight += weight;
-          }
-        }
-
-        if (totalWeight > 0.0) {
-          color /= totalWeight;
-        } else {
-          color = texture(u_texture, v_uv).rgb;
-        }
-
-        outColor = vec4(color, 1.0);
-      }
-    `;
+    return motionBlurSamplingFrag;
   }
 }

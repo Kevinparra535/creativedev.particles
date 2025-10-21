@@ -11,7 +11,7 @@ import trianglesVertexShader from '@/assets/glsl1/triangles.vert.glsl?raw';
 import trianglesDistanceShader from '@/assets/glsl1/trianglesDistance.vert.glsl?raw';
 import trianglesMotionShader from '@/assets/glsl1/trianglesMotion.vert.glsl?raw';
 
-import MeshMotionMaterial from '@/assets/postprocessing/motionBlur/MeshMotionMaterial';
+import MeshMotionMaterial from '@/assets/postprocessing/effects/motionBlur/MeshMotionMaterial';
 
 import Simulator from './Simulator';
 import { lightPosition } from './LegacyLights';
