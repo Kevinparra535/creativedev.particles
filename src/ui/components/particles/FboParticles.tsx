@@ -9,6 +9,9 @@ import {
   trianglesVertexShader,
   particlesMotionVertexShader,
   trianglesMotionShader,
+  particlesDistanceVertexShader,
+  particlesDistanceFragmentShader,
+  trianglesDistanceShader,
 } from "../../../glsl/particlesShaders";
 import { createPingPong } from "../../../utils/fboHelper";
 import MeshMotionMaterial from "../../../postprocessing/motionBlur/MeshMotionMaterial";
@@ -171,6 +174,7 @@ export default function FboParticles(props: Readonly<Props>) {
   const pointsRef = React.useRef<THREE.Points | null>(null);
   const meshRef = React.useRef<THREE.Mesh | null>(null);
   const motionMatRef = React.useRef<MeshMotionMaterial | null>(null);
+  const distanceMatRef = React.useRef<THREE.ShaderMaterial | null>(null);
   const prevTexRef = React.useRef<THREE.Texture | null>(null);
 
   // Time and init animation
@@ -293,6 +297,7 @@ export default function FboParticles(props: Readonly<Props>) {
     geoRef.current?.dispose();
     matRef.current?.dispose();
     motionMatRef.current?.dispose();
+    distanceMatRef.current?.dispose();
 
     if (mode === "points") {
       geoRef.current = buildLookupGeometry(w, h);
@@ -305,9 +310,24 @@ export default function FboParticles(props: Readonly<Props>) {
           color2: { value: new THREE.Color(color2) },
           flipRatio: { value: 0 },
         },
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
+        transparent: false,
+        depthWrite: true,
+        depthTest: true,
+        blending: THREE.NoBlending,
+        glslVersion: THREE.GLSL3,
+      });
+
+      distanceMatRef.current = new THREE.ShaderMaterial({
+        vertexShader: particlesDistanceVertexShader,
+        fragmentShader: particlesDistanceFragmentShader,
+        uniforms: {
+          lightPos: { value: new THREE.Vector3(0, 0, 0) },
+          texturePosition: { value: null as unknown as THREE.Texture },
+        },
+        depthTest: true,
+        depthWrite: true,
+        side: THREE.BackSide,
+        blending: THREE.NoBlending,
         glslVersion: THREE.GLSL3,
       });
 
@@ -332,9 +352,25 @@ export default function FboParticles(props: Readonly<Props>) {
           color2: { value: new THREE.Color(color2) },
           flipRatio: { value: flipRatio },
         },
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
+        transparent: false,
+        depthWrite: true,
+        depthTest: true,
+        blending: THREE.NoBlending,
+        glslVersion: THREE.GLSL3,
+      });
+
+      distanceMatRef.current = new THREE.ShaderMaterial({
+        vertexShader: trianglesDistanceShader,
+        fragmentShader: particlesDistanceFragmentShader,
+        uniforms: {
+          lightPos: { value: new THREE.Vector3(0, 0, 0) },
+          texturePosition: { value: null as unknown as THREE.Texture },
+          flipRatio: { value: flipRatio },
+        },
+        depthTest: true,
+        depthWrite: true,
+        side: THREE.BackSide,
+        blending: THREE.NoBlending,
         glslVersion: THREE.GLSL3,
       });
 
@@ -366,6 +402,7 @@ export default function FboParticles(props: Readonly<Props>) {
           : (meshRef.current as unknown as { motionMaterial?: THREE.Material } | null);
       if (obj2) obj2.motionMaterial = undefined;
       motionMatRef.current?.dispose();
+      distanceMatRef.current?.dispose();
       matRef.current?.dispose();
       geoRef.current?.dispose();
     };
@@ -460,7 +497,7 @@ export default function FboParticles(props: Readonly<Props>) {
   });
 
   // Simulation + draw per frame
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     if (
       !pingpongRef.current ||
       !simMatRef.current ||
@@ -480,10 +517,11 @@ export default function FboParticles(props: Readonly<Props>) {
 
     // Setup simulation uniforms
     const simMat = simMatRef.current;
-    simMat.uniforms.time.value = clock.getElapsedTime();
-    // Live update dynamic uniforms from props
-    simMat.uniforms.speed.value = speed;
-    simMat.uniforms.dieSpeed.value = dieSpeed;
+  simMat.uniforms.time.value = clock.getElapsedTime();
+  // Live update dynamic uniforms from props (scale by dt like legacy)
+  const deltaRatio = delta / (1.0 / 60.0);
+  simMat.uniforms.speed.value = speed * deltaRatio;
+  simMat.uniforms.dieSpeed.value = dieSpeed * deltaRatio;
     simMat.uniforms.radius.value = radius;
   simMat.uniforms.curlSize.value = curlSize;
   // Keep attraction active even when followMouse is off; shader chooses target
@@ -516,6 +554,15 @@ export default function FboParticles(props: Readonly<Props>) {
       }
     }
 
+    // Update distance material
+    if (distanceMatRef.current) {
+      const currentTex = pingpong.read().texture;
+      distanceMatRef.current.uniforms.texturePosition.value = currentTex;
+      if (mode === "triangles" && distanceMatRef.current.uniforms.flipRatio) {
+        (distanceMatRef.current.uniforms.flipRatio as THREE.IUniform<number>).value = flipRatio;
+      }
+    }
+
     // Update motion material uniforms for legacy motion blur
     if (motionMatRef.current) {
       const currentTex = pingpong.read().texture;
@@ -538,6 +585,10 @@ export default function FboParticles(props: Readonly<Props>) {
         ref={pointsRef as React.RefObject<THREE.Points>}
         geometry={geoRef.current as unknown as THREE.BufferGeometry}
         material={matRef.current as unknown as THREE.Material}
+        castShadow
+        receiveShadow
+        // @ts-ignore - Drei/React three types allow passing material instance
+        customDistanceMaterial={distanceMatRef.current as unknown as THREE.Material}
       />
     );
   }
@@ -546,6 +597,10 @@ export default function FboParticles(props: Readonly<Props>) {
       ref={meshRef as React.RefObject<THREE.Mesh>}
       geometry={geoRef.current as unknown as THREE.BufferGeometry}
       material={matRef.current as unknown as THREE.Material}
+      castShadow
+      receiveShadow
+      // @ts-ignore
+      customDistanceMaterial={distanceMatRef.current as unknown as THREE.Material}
     />
   );
 }
