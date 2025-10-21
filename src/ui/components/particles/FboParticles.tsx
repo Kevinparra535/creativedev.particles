@@ -311,7 +311,7 @@ export default function FboParticles(props: Readonly<Props>) {
           flipRatio: { value: 0 },
         },
         transparent: false,
-        depthWrite: true,
+        depthWrite: false,
         depthTest: true,
         blending: THREE.NoBlending,
         glslVersion: THREE.GLSL3,

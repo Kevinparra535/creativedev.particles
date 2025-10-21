@@ -39,7 +39,10 @@ export default function CpuParticles({
 
   const { camera } = useThree();
   const mouse3d = React.useRef(new THREE.Vector3());
-  const planeZ = React.useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), []);
+  const planeZ = React.useMemo(
+    () => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0),
+    []
+  );
   const raycaster = React.useMemo(() => new THREE.Raycaster(), []);
 
   useFrame(({ pointer }) => {
@@ -70,11 +73,24 @@ export default function CpuParticles({
   });
 
   return (
-    <points ref={pointsRef as React.RefObject<THREE.Points>}>
+    <points
+      ref={pointsRef as React.RefObject<THREE.Points>}
+      castShadow
+      receiveShadow
+    >
       <bufferGeometry ref={geomRef as React.RefObject<THREE.BufferGeometry>}>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial ref={matRef as React.RefObject<THREE.PointsMaterial>} color={color} size={size} sizeAttenuation />
+      <pointsMaterial
+        ref={matRef as React.RefObject<THREE.PointsMaterial>}
+        color={color}
+        size={size}
+        sizeAttenuation
+        transparent={false}
+        depthWrite
+        depthTest
+        blending={THREE.NoBlending}
+      />
     </points>
   );
 }
