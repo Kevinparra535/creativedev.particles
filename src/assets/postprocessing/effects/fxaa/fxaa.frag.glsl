@@ -9,7 +9,7 @@
 
 
 // GLSL 3
-#version 300 es
+
 precision mediump float;
 
 uniform vec2 u_resolution;

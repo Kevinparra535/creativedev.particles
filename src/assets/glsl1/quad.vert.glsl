@@ -5,7 +5,7 @@
 // }
 
 // GLSL 3
-#version 300 es
+
 in vec3 position;
 
 void main() {

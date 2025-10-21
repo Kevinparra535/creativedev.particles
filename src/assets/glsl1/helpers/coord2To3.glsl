@@ -14,7 +14,7 @@
 // #pragma glslify: export(coord2To3)
 
 // GLSL 3
-#version 300 es
+
 // http://jsfiddle.net/greggman/gSnHZ/
 
 vec3 coord2To3(vec2 texCoord, float size, float slicesPerRow) {

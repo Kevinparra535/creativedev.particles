@@ -23,7 +23,7 @@
 
 
 // GLSL 3
-#version 300 es
+
 uniform sampler2D texturePosition;
 uniform sampler2D texturePrevPosition;
 

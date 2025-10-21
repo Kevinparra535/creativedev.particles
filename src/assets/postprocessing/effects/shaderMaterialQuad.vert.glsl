@@ -6,7 +6,7 @@
 // }
 
 // GLSL 3
-#version 300 es
+
 precision mediump float;
 
 // Implicit attributes 'position' and 'uv' become explicit 'in' variables

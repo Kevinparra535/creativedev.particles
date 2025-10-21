@@ -37,7 +37,7 @@
 
 
 // GLSL 3
-#version 300 es
+
 // http://jsfiddle.net/greggman/gSnHZ/
 
 vec2 computeSliceOffset(float slice, vec4 sliceInfo) {

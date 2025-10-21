@@ -39,7 +39,7 @@
 // }
 
 // GLSL 3
-#version 300 es
+
 precision mediump float; // Added default precision, often needed in ES
 
 // 'attribute' is replaced by 'in'

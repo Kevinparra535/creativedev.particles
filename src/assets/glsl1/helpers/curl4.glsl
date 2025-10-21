@@ -28,7 +28,7 @@
 
 
 // GLSL 3
-#version 300 es
+
 #pragma glslify: snoise4 = require(./simplexNoiseDerivatives4)
 
 vec3 curl(in vec3 p, in float noiseTime, in float persistence) {

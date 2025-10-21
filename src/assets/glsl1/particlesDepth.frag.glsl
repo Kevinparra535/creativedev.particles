@@ -28,7 +28,7 @@
 // }
 
 // GLSL 3
-#version 300 es
+
 precision mediump float;
 // chunk(common)
 // chunk(logdepthbuf_pars_fragment)

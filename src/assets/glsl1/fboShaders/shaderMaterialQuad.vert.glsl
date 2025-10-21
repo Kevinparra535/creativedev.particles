@@ -7,7 +7,7 @@
 
 
 // GLSL 3
-#version 300 es
+
 out vec2 v_uv;
 
 void main() {

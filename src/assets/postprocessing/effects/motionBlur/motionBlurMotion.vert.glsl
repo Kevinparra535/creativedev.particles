@@ -22,7 +22,7 @@
 // }
 
 // GLSL 3
-#version 300 es
+
 precision mediump float; // Add default precision
 
 // chunk(morphtarget_pars_vertex);

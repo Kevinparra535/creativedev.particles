@@ -25,7 +25,7 @@
 
 
 // GLSL 3
-#version 300 es
+
 
 // 'varying' is replaced by 'out' in the vertex shader
 out vec2 v_rgbNW;

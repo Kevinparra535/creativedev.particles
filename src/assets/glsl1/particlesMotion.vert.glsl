@@ -24,7 +24,7 @@
 
 
 // GLSL 3
-#version 300 es
+
 uniform sampler2D texturePosition;
 out vec4 vWorldPosition;
 

@@ -22,7 +22,7 @@
 // }
 
 // GLSL 3
-#version 300 es
+
 out vec4 fragColor;
 precision mediump float;
 // chunk(common);

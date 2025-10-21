@@ -13,7 +13,7 @@
 #pragma glslify: export(coord3To2)
 
 // GLSL 3
-#version 300 es
+
 // http://jsfiddle.net/greggman/gSnHZ/
 
 // sliceInfo.x = size aka volumeSliceColumn * volumeSliceRow
