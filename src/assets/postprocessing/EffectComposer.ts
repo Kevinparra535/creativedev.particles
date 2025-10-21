@@ -184,6 +184,7 @@ export function getRenderTarget(
     renderTarget = list.pop()!;
     // Restore default state explicitly (avoid shallow-assigning texture object)
     (renderTarget as any).depthBuffer = _renderTargetDefaultState.depthBuffer;
+    (renderTarget as any).stencilBuffer = false;
     if (renderTarget.texture) {
       renderTarget.texture.generateMipmaps = _renderTargetDefaultState.texture.generateMipmaps;
     }

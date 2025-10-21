@@ -119,6 +119,14 @@ export default class Effect {
       this.uniforms.u_texture.value = fromRenderTarget.texture;
     }
 
+    // Keep aspect in sync every frame like legacy (u_aspect = width/height)
+    if (this.uniforms.u_resolution && this.uniforms.u_aspect) {
+      const res = this.uniforms.u_resolution.value as THREE.Vector2;
+      if (res && typeof this.uniforms.u_aspect.value === 'number' && res.y !== 0) {
+        this.uniforms.u_aspect.value = res.x / res.y;
+      }
+    }
+
     // Store render context for subclasses to use
     this.lastRenderContext = { dt, fromRenderTarget, toScreen };
 
