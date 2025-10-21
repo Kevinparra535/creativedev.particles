@@ -6,7 +6,7 @@ import Lights from "../components/scene/Lights";
 import Floor from "../components/scene/Floor";
 import ControlsPanel from "../components/controls/ControlsPanel";
 
-const Scene1 = () => {
+const ModernCore = () => {
   const s = useSceneSettings();
   const mode: "triangles" | "points" = s.useTriangleParticles
     ? "triangles"
@@ -54,4 +54,4 @@ const Scene1 = () => {
   );
 };
 
-export default Scene1;
+export default ModernCore;

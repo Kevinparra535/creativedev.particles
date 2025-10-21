@@ -1,4 +1,4 @@
-import styled, { createGlobalStyle, css } from "styled-components";
+import styled, { createGlobalStyle, css } from 'styled-components';
 
 // =====================================
 // Global Styles - Afecta HTML y Root
@@ -12,7 +12,7 @@ export const GlobalStyles = createGlobalStyle`
     padding: 0;
   }
 
-  html {
+  html {s
     /* Base para experiencias 3D inmersivas */
     height: 100%;
     font-size: 16px;
@@ -127,29 +127,29 @@ export const GlobalStyles = createGlobalStyle`
 
 export const cssVariables = {
   colors: {
-    primaryBg: "var(--primary-bg)",
-    secondaryBg: "var(--secondary-bg)",
-    accentColor: "var(--accent-color)",
-    textPrimary: "var(--text-primary)",
-    textSecondary: "var(--text-secondary)",
-    canvasBg: "var(--canvas-bg)",
-    particleGlow: "var(--particle-glow)",
-    particleTrail: "var(--particle-trail)",
+    primaryBg: 'var(--primary-bg)',
+    secondaryBg: 'var(--secondary-bg)',
+    accentColor: 'var(--accent-color)',
+    textPrimary: 'var(--text-primary)',
+    textSecondary: 'var(--text-secondary)',
+    canvasBg: 'var(--canvas-bg)',
+    particleGlow: 'var(--particle-glow)',
+    particleTrail: 'var(--particle-trail)'
   },
   spacing: {
-    xs: "0.25rem",
-    sm: "0.5rem",
-    md: "1rem",
-    lg: "1.5rem",
-    xl: "2rem",
-    xxl: "3rem",
+    xs: '0.25rem',
+    sm: '0.5rem',
+    md: '1rem',
+    lg: '1.5rem',
+    xl: '2rem',
+    xxl: '3rem'
   },
   zIndex: {
     canvas: 1,
     ui: 10,
     overlay: 100,
-    modal: 1000,
-  },
+    modal: 1000
+  }
 };
 
 // =====================================
@@ -175,33 +175,33 @@ export const CanvasContainer = styled.div`
 // UI Overlay Components
 // =====================================
 
-export const UIOverlay = styled.div<{ position?: "top" | "bottom" | "center" }>`
+export const UIOverlay = styled.div<{ position?: 'top' | 'bottom' | 'center' }>`
   position: absolute;
   z-index: ${cssVariables.zIndex.ui};
   pointer-events: auto;
 
-  ${({ position = "top" }) => {
+  ${({ position = 'top' }) => {
     switch (position) {
-      case "top":
+      case 'top':
         return css`
           top: ${cssVariables.spacing.lg};
           left: ${cssVariables.spacing.lg};
           right: ${cssVariables.spacing.lg};
         `;
-      case "bottom":
+      case 'bottom':
         return css`
           bottom: ${cssVariables.spacing.lg};
           left: ${cssVariables.spacing.lg};
           right: ${cssVariables.spacing.lg};
         `;
-      case "center":
+      case 'center':
         return css`
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
         `;
       default:
-        return "";
+        return '';
     }
   }}
 `;
