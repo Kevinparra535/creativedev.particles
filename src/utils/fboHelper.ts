@@ -1,18 +1,20 @@
-import glsl from "glslify";
-import * as THREE from "three";
+import * as THREE from 'three';
+
+import QUAD_VERT from '@/assets/glsl1/fboShaders/quad.vert.glsl?raw';
+import QUAD_FRAG from '@/assets/glsl1/fboShaders/quad.frag.glsl?raw';
 
 // === Tipos (igual que tu versión) ===
 export type FBOOptions = Partial<
   Pick<
     THREE.RenderTargetOptions,
-    | "wrapS"
-    | "wrapT"
-    | "minFilter"
-    | "magFilter"
-    | "format"
-    | "type"
-    | "depthBuffer"
-    | "stencilBuffer"
+    | 'wrapS'
+    | 'wrapT'
+    | 'minFilter'
+    | 'magFilter'
+    | 'format'
+    | 'type'
+    | 'depthBuffer'
+    | 'stencilBuffer'
   >
 >;
 
@@ -30,11 +32,11 @@ let _mesh: THREE.Mesh | null = null;
 let _copyMaterial: THREE.RawShaderMaterial | null = null;
 
 // Mantengo estas por compatibilidad (vertex shader is exposed for legacy consumers)
-let _vertexShader = "";
+let _vertexShader = '';
 
 // === Exposed accessors (legacy names via getters) ===
-let _rawPrefixPublic = "";
-let _vertexShaderPublic = "";
+let _rawPrefixPublic = '';
+let _vertexShaderPublic = '';
 let _copyMaterialPublic: THREE.RawShaderMaterial | null = null;
 
 export const rawShaderPrefix = (() => _rawPrefixPublic)();
@@ -51,38 +53,11 @@ export function init(renderer: THREE.WebGLRenderer): void {
 
   _renderer = renderer;
 
-  _rawPrefixPublic =
-    "precision " + _renderer.capabilities.precision + " float;\n";
+  _rawPrefixPublic = 'precision ' + _renderer.capabilities.precision + ' float;\n';
 
   _scene = new THREE.Scene();
   _camera = new THREE.Camera();
   _camera.position.setZ(1);
-
-  // === Shaders GLSL3 (sin #version: Three la inyecta al compilar con glslVersion: THREE.GLSL3) ===
-  const QUAD_VERT = glsl`
-  in vec3 position; // Change attribute to in
-  in vec2 uv;       // Change attribute to in
-
-  out vec2 v_uv;   // Change varying to out
-
-  void main() {
-      v_uv = uv;
-      gl_Position = vec4( position, 1.0 );
-  }
-  `;
-
-  const QUAD_FRAG = glsl`
-  uniform sampler2D u_texture;
-
-  in vec2 v_uv; // Change varying to in
-
-  out vec4 fragColor; // Define a new output variable
-
-  void main() {
-      // Change texture2D() to texture() and assign to the new output variable
-      fragColor = texture( u_texture, v_uv );
-  }
-  `;
 
   // Guardamos para getVertexShader() / legacy
   _vertexShader = QUAD_VERT;
@@ -96,7 +71,7 @@ export function init(renderer: THREE.WebGLRenderer): void {
     depthWrite: false,
     depthTest: false,
     blending: THREE.NoBlending,
-    transparent: false,
+    transparent: false
   });
 
   _copyMaterialPublic = _copyMaterial;
@@ -106,19 +81,14 @@ export function init(renderer: THREE.WebGLRenderer): void {
 
   // (Opcional) Aviso si no es WebGL2:
   if (!_renderer.capabilities.isWebGL2) {
-    console.warn(
-      "[FBO Helper] WebGL2 no detectado: GLSL3 requerirá un contexto webgl2."
-    );
+    console.warn('[FBO Helper] WebGL2 no detectado: GLSL3 requerirá un contexto webgl2.');
   }
 }
 
 /**
  * Copia de textura (legacy signature)
  */
-export function copy(
-  inputTexture: THREE.Texture,
-  ouputTexture?: THREE.WebGLRenderTarget
-): void {
+export function copy(inputTexture: THREE.Texture, ouputTexture?: THREE.WebGLRenderTarget): void {
   if (!_renderer || !_scene || !_camera || !_copyMaterial || !_mesh) return;
   _mesh.material = _copyMaterial;
   _copyMaterial.uniforms.u_texture.value = inputTexture;
@@ -135,10 +105,7 @@ export function copy(
 /**
  * Render con material custom (legacy signature)
  */
-export function render(
-  material: THREE.Material,
-  renderTarget?: THREE.WebGLRenderTarget
-): void {
+export function render(material: THREE.Material, renderTarget?: THREE.WebGLRenderTarget): void {
   if (!_renderer || !_scene || !_camera || !_mesh) return;
   _mesh.material = material;
   if (renderTarget) {
@@ -158,7 +125,7 @@ export function getColorState(): ColorState {
   return {
     autoClearColor: _renderer!.autoClearColor,
     clearColor: _renderer!.getClearColor(color).getHex(),
-    clearAlpha: _renderer!.getClearAlpha(),
+    clearAlpha: _renderer!.getClearAlpha()
   };
 }
 
@@ -200,7 +167,7 @@ export function createRenderTarget(
     format: format ?? THREE.RGBFormat,
     type: type ?? THREE.UnsignedByteType,
     minFilter: minFilter ?? THREE.LinearFilter,
-    magFilter: magFilter ?? THREE.LinearFilter,
+    magFilter: magFilter ?? THREE.LinearFilter
     // depthBuffer: false,
     // stencilBuffer: false,
   });
@@ -225,7 +192,7 @@ export function createRenderTargetWithOptions(
     type: THREE.FloatType,
     depthBuffer: false,
     stencilBuffer: false,
-    ...options,
+    ...options
   });
   // disable mipmaps por defecto (como legacy)
   rt.texture.generateMipmaps = false;
@@ -235,11 +202,7 @@ export function createRenderTargetWithOptions(
 /**
  * Ping-pong helper
  */
-export function createPingPong(
-  width: number,
-  height: number,
-  options: FBOOptions = {}
-) {
+export function createPingPong(width: number, height: number, options: FBOOptions = {}) {
   const a = createRenderTargetWithOptions(width, height, options);
   const b = createRenderTargetWithOptions(width, height, options);
 

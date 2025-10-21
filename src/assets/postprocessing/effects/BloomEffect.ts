@@ -1,8 +1,11 @@
-import glsl from "glslify";
-import Effect from "../Effect";
-import * as THREE from "three";
-import effectComposer from "../EffectComposer";
-import * as fboHelper from "../../../utils/fboHelper";
+import * as THREE from 'three';
+
+import Effect from '../Effect';
+import effectComposer from '../EffectComposer';
+import * as fboHelper from '@/utils/fboHelper';
+
+import bloomFragmentShader from './bloom/bloom.frag.glsl?raw';
+import bloomBlurFragmentShader from './bloom/bloomBlur.frag.glsl?raw';
 
 /**
  * Bloom Effect - Exact Legacy Compatible Implementation
@@ -22,23 +25,22 @@ export default class BloomEffect extends Effect {
     super.init({
       uniforms: {
         u_blurTexture: { value: null as unknown as THREE.Texture },
-        u_amount: { value: 0 },
+        u_amount: { value: 0 }
       },
       fragmentShader: this.getBloomShader(),
       isRawMaterial: true,
-      addRawShaderPrefix: true, // Use legacy GLSL1 prefix
+      addRawShaderPrefix: true // Use legacy GLSL1 prefix
     });
 
     // Initialize blur material exactly like legacy
     this.blurMaterial = new THREE.RawShaderMaterial({
       uniforms: {
         u_texture: { value: null as unknown as THREE.Texture },
-        u_delta: { value: new THREE.Vector2() },
+        u_delta: { value: new THREE.Vector2() }
       },
       vertexShader: fboHelper.getVertexShader(),
-      fragmentShader:
-        fboHelper.getRawShaderPrefix() + this.getBloomBlurShader(),
-      glslVersion: THREE.GLSL3,
+      fragmentShader: fboHelper.getRawShaderPrefix() + this.getBloomBlurShader(),
+      glslVersion: THREE.GLSL3
     });
   }
 
@@ -46,84 +48,25 @@ export default class BloomEffect extends Effect {
    * Get bloom fragment shader (exact legacy GLSL1)
    */
   private getBloomShader(): string {
-    return glsl`
-      uniform sampler2D u_texture;
-      uniform sampler2D u_blurTexture;
-      uniform float u_amount;
-
-      in vec2 v_uv; // Change varying to in
-
-      out vec4 fragColor; // Define a new output variable
-
-      void main() {
-          // Change texture2D() to texture()
-          vec3 baseColor = texture(u_texture, v_uv).rgb;
-          vec3 blurColor = texture(u_blurTexture, v_uv).rgb;
-
-          // Exact legacy screen blend calculation remains the same
-          vec3 color = mix(baseColor, 1.0 - ((1.0 - baseColor) * (1.0 - blurColor)), u_amount);
-
-          // Assign the final output to the new fragColor variable
-          fragColor = vec4(color, 1.0);
-      }
-    `;
+    return bloomFragmentShader;
   }
 
   /**
    * Get bloom blur fragment shader (exact legacy GLSL1)
    */
   private getBloomBlurShader(): string {
-    return glsl`
-    uniform sampler2D u_texture;
-    uniform vec2 u_delta;
-
-    in vec2 v_uv; // Change varying to in
-
-    out vec4 fragColor; // Define a new output variable
-
-    void main() {
-        // Change texture2D() to texture()
-        vec3 color = texture(u_texture, v_uv).rgb * 0.1633;
-
-        vec2 delta = u_delta;
-        color += texture(u_texture, v_uv - delta).rgb * 0.1531;
-        color += texture(u_texture, v_uv + delta).rgb * 0.1531;
-
-        delta += u_delta;
-        color += texture(u_texture, v_uv - delta).rgb * 0.12245;
-        color += texture(u_texture, v_uv + delta).rgb * 0.12245;
-
-        delta += u_delta;
-        color += texture(u_texture, v_uv - delta).rgb * 0.0918;
-        color += texture(u_texture, v_uv + delta).rgb * 0.0918;
-
-        delta += u_delta;
-        color += texture(u_texture, v_uv - delta).rgb * 0.051;
-        color += texture(u_texture, v_uv + delta).rgb * 0.051;
-
-        // Assign final output to the new fragColor variable
-        fragColor = vec4(color, 1.0);
-    }
-    `;
+    return bloomBlurFragmentShader;
   }
 
   /**
    * Custom render method exactly like legacy
    */
-  render(
-    dt: number,
-    fromRenderTarget: THREE.WebGLRenderTarget,
-    toScreen: boolean
-  ) {
+  render(dt: number, fromRenderTarget: THREE.WebGLRenderTarget, toScreen: boolean) {
     if (!this.blurMaterial) return;
 
     // Get render targets exactly like legacy
-    const tmpRenderTarget1 = effectComposer.getRenderTarget(
-      this.BLUR_BIT_SHIFT
-    );
-    const tmpRenderTarget2 = effectComposer.getRenderTarget(
-      this.BLUR_BIT_SHIFT
-    );
+    const tmpRenderTarget1 = effectComposer.getRenderTarget(this.BLUR_BIT_SHIFT);
+    const tmpRenderTarget2 = effectComposer.getRenderTarget(this.BLUR_BIT_SHIFT);
 
     // Release them first (legacy pattern)
     effectComposer.releaseRenderTarget(tmpRenderTarget1, tmpRenderTarget2);
@@ -131,18 +74,12 @@ export default class BloomEffect extends Effect {
     // Horizontal blur pass
     const blurRadius = this.blurRadius;
     this.blurMaterial.uniforms.u_texture.value = fromRenderTarget.texture;
-    this.blurMaterial.uniforms.u_delta.value.set(
-      blurRadius / effectComposer.resolution.x,
-      0
-    );
+    this.blurMaterial.uniforms.u_delta.value.set(blurRadius / effectComposer.resolution.x, 0);
     fboHelper.render(this.blurMaterial, tmpRenderTarget1);
 
     // Vertical blur pass
     this.blurMaterial.uniforms.u_texture.value = tmpRenderTarget1.texture;
-    this.blurMaterial.uniforms.u_delta.value.set(
-      0,
-      blurRadius / effectComposer.resolution.y
-    );
+    this.blurMaterial.uniforms.u_delta.value.set(0, blurRadius / effectComposer.resolution.y);
     fboHelper.render(this.blurMaterial, tmpRenderTarget2);
 
     // Set uniforms for final bloom pass

@@ -1,5 +1,5 @@
-import * as THREE from "three";
-import * as fboHelper from "../../utils/fboHelper";
+import * as THREE from 'three';
+import * as fboHelper from '../../utils/fboHelper';
 
 /**
  * Legacy-compatible Effect Composer - exact replication of effectComposer.js
@@ -17,8 +17,8 @@ let _renderTargetCounts: Record<string, number> = {};
 const _renderTargetDefaultState = {
   depthBuffer: false,
   texture: {
-    generateMipmaps: false,
-  },
+    generateMipmaps: false
+  }
 };
 
 let _renderer: THREE.WebGLRenderer;
@@ -147,10 +147,7 @@ export function renderScene(
  * @param toScreen Whether to render to screen (undefined = to render target)
  * @returns fromRenderTarget after swap
  */
-export function render(
-  material: THREE.Material,
-  toScreen?: boolean
-): THREE.WebGLRenderTarget {
+export function render(material: THREE.Material, toScreen?: boolean): THREE.WebGLRenderTarget {
   fboHelper.render(material, toScreen ? undefined : _toRenderTarget);
   swapRenderTarget();
   return _fromRenderTarget;
@@ -178,7 +175,7 @@ export function getRenderTarget(
   const width = _resolution.x >> bitShift;
   const height = _resolution.y >> bitShift;
   const isRGBANum = +(isRGBA || false);
-  const id = bitShift + "_" + isRGBANum;
+  const id = bitShift + '_' + isRGBANum;
   const list = _getRenderTargetList(id);
 
   let renderTarget: THREE.WebGLRenderTarget;
@@ -209,9 +206,7 @@ export function getRenderTarget(
  * Release render target back to pool (exact legacy signature)
  * @param renderTargets Render targets to release
  */
-export function releaseRenderTarget(
-  ...renderTargets: THREE.WebGLRenderTarget[]
-): void {
+export function releaseRenderTarget(...renderTargets: THREE.WebGLRenderTarget[]): void {
   for (let i = 0, len = renderTargets.length; i < len; i++) {
     const renderTarget = renderTargets[i];
     const id = (renderTarget as any)._listId;
@@ -303,7 +298,7 @@ const effectComposer = {
   getRenderTarget,
   releaseRenderTarget,
   addEffect,
-  dispose,
+  dispose
 };
 
 export default effectComposer;
