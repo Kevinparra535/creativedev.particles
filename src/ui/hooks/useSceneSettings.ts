@@ -1,6 +1,5 @@
-import { create } from "zustand";
-import DefaultSettings, { amountMap } from "../../config/settings.config";
-import type { AmountKey } from "../../config/settings.config";
+import { create } from 'zustand';
+import DefaultSettings, { amountMap, type AmountKey } from '@/config/settings.config';
 
 export type SceneSettings = {
   amount: AmountKey;
@@ -20,7 +19,7 @@ export type SceneSettings = {
   fxaa: boolean;
   bloom: boolean;
   motionBlur: boolean;
-  motionBlurQuality: "best" | "high" | "medium" | "low";
+  motionBlurQuality: 'best' | 'high' | 'medium' | 'low';
   // Post params
   motionBlurMaxDistance: number;
   motionBlurMultiplier: number;
@@ -48,7 +47,7 @@ export const useSceneSettings = create<SceneSettings>((set) => {
     curlSize: DefaultSettings.curlSize,
     attraction: DefaultSettings.attraction,
     flipRatio: 0,
-  triangleSize: 2.5,
+    triangleSize: 2.5,
     shadowDarkness: DefaultSettings.shadowDarkness,
     bgColor: DefaultSettings.bgColor,
     color1: DefaultSettings.color1,
@@ -65,12 +64,11 @@ export const useSceneSettings = create<SceneSettings>((set) => {
     cols,
     rows,
 
-    set: (key, value) =>
-      set((prev: SceneSettings) => ({ ...prev, [key]: value })),
+    set: (key, value) => set((prev: SceneSettings) => ({ ...prev, [key]: value })),
     setAmount: (amount: AmountKey) => {
       const [w, h, r] = amountMap[amount];
       set({ amount, cols: w, rows: h, radius: r });
-    },
+    }
   };
 });
 
