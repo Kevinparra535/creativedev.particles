@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { quadVert, positionFrag } from '../../../assets/glsl3/simulationShaders';
 import { createPingPong } from '@/utils/fboHelper';
@@ -62,24 +62,24 @@ export function useFboSimulator(
   width: number,
   height: number
 ): FboSimulator {
-  const resolution = React.useMemo(() => new THREE.Vector2(width, height), [width, height]);
+  const resolution = useMemo(() => new THREE.Vector2(width, height), [width, height]);
 
   // Offscreen scene/camera + mesh for full-screen quad
-  const sceneRef = React.useRef<THREE.Scene | null>(null);
-  const camRef = React.useRef<THREE.OrthographicCamera | null>(null);
-  const meshRef = React.useRef<THREE.Mesh | null>(null);
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const camRef = useRef<THREE.OrthographicCamera | null>(null);
+  const meshRef = useRef<THREE.Mesh | null>(null);
 
   // Materials
-  const initMatRef = React.useRef<THREE.RawShaderMaterial | null>(null);
-  const simMatRef = React.useRef<THREE.RawShaderMaterial | null>(null);
+  const initMatRef = useRef<THREE.RawShaderMaterial | null>(null);
+  const simMatRef = useRef<THREE.RawShaderMaterial | null>(null);
 
   // Targets
-  const pingRef = React.useRef<ReturnType<typeof createPingPong> | null>(null);
-  const defaultRTRef = React.useRef<THREE.WebGLRenderTarget | null>(null);
-  const prevTexRef = React.useRef<THREE.Texture | null>(null);
+  const pingRef = useRef<ReturnType<typeof createPingPong> | null>(null);
+  const defaultRTRef = useRef<THREE.WebGLRenderTarget | null>(null);
+  const prevTexRef = useRef<THREE.Texture | null>(null);
 
   // Create resources
-  React.useEffect(() => {
+  useEffect(() => {
     // Scene and camera
     const scene = new THREE.Scene();
     const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -179,7 +179,7 @@ export function useFboSimulator(
     };
   }, [gl, width, height, resolution]);
 
-  const step = React.useCallback((params: SimStepParams) => {
+  const step = useCallback((params: SimStepParams) => {
     const ping = pingRef.current;
     const simMat = simMatRef.current;
     const scene = sceneRef.current;

@@ -5,11 +5,10 @@ import { PerspectiveCamera } from '@react-three/drei';
 import DefaultSettings from '@/config/settings.config';
 import { useSceneSettings } from '@/ui/hooks/useSceneSettings';
 
-import LegacyCore from '@/ui/scenes/LegacyCore';
 import ModernCore from '@/ui/scenes/ModernCore';
 
 const R3FCanva = () => {
-  const camBase = new THREE.Vector3(300, 60, 300).normalize().multiplyScalar(1000);
+  const camBase = new THREE.Vector3(0, 60, 800).normalize().multiplyScalar(1000);
 
   const s = useSceneSettings();
 
@@ -28,14 +27,14 @@ const R3FCanva = () => {
         gl={{ antialias: true, powerPreference: 'high-performance' }}
       >
         <color attach='background' args={[s.bgColor || DefaultSettings.bgColor]} />
-        {/* <fogExp2 attach='fog' args={[s.bgColor || DefaultSettings.bgColor, 0.001]} /> */}
+        <fogExp2 attach='fog' args={[s.bgColor || DefaultSettings.bgColor, 0.001]} />
 
         <ModernCore />
         {/* <LegacyCore /> */}
 
         <PerspectiveCamera
           makeDefault
-          fov={45}
+          fov={75}
           near={10}
           far={3000}
           position={[camBase.x, camBase.y, camBase.z]}

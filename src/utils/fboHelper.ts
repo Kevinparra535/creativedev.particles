@@ -167,9 +167,9 @@ export function createRenderTarget(
     format: format ?? THREE.RGBFormat,
     type: type ?? THREE.UnsignedByteType,
     minFilter: minFilter ?? THREE.LinearFilter,
-    magFilter: magFilter ?? THREE.LinearFilter
-    // depthBuffer: false,
-    // stencilBuffer: false,
+    magFilter: magFilter ?? THREE.LinearFilter,
+    depthBuffer: false,
+    stencilBuffer: false,
   });
   renderTarget.texture.generateMipmaps = false;
   return renderTarget;

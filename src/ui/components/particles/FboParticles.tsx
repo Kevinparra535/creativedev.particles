@@ -2,18 +2,7 @@ import { useMemo, useRef, useEffect, type RefObject } from 'react';
 
 import * as THREE from 'three';
 import { useThree, useFrame } from '@react-three/fiber';
-import DefaultSettings from '../../../config/settings.config';
-// simulation handled by useFboSimulator
-// import {
-//   particlesFragmentShader,
-//   particlesVertexShader,
-//   trianglesVertexShader,
-//   particlesMotionVertexShader,
-//   trianglesMotionShader,
-//   particlesDistanceVertexShader,
-//   particlesDistanceFragmentShader,
-//   trianglesDistanceShader
-// } from '../../../assets/glsl3/particlesShaders';
+import DefaultSettings from '@/config/settings.config';
 
 import particlesVertexShader from '@/assets/glsl1/particles.vert.glsl?raw';
 import particlesFragmentShader from '@/assets/glsl1/particles.frag.glsl?raw';
@@ -26,7 +15,7 @@ import trianglesMotionShader from '@/assets/glsl1/trianglesMotion.vert.glsl?raw'
 
 //
 import useFboSimulator from './useFboSimulator';
-import MeshMotionMaterial from '../../../assets/postprocessing/effects/motionBlur/MeshMotionMaterial';
+import MeshMotionMaterial from '@/assets/postprocessing/effects/motionBlur/MeshMotionMaterial';
 
 type Props = {
   size?: number; // square fallback
@@ -326,12 +315,8 @@ export default function FboParticles(props: Readonly<Props>) {
   // React to color changes at runtime
   useEffect(() => {
     if (matRef.current) {
-      (matRef.current.uniforms.color1.value as THREE.Color).set(
-        color1
-      );
-      (matRef.current.uniforms.color2.value as THREE.Color).set(
-        color2
-      );
+      (matRef.current.uniforms.color1.value as THREE.Color).set(color1);
+      (matRef.current.uniforms.color2.value as THREE.Color).set(color2);
     }
   }, [color1, color2]);
 
@@ -351,11 +336,7 @@ export default function FboParticles(props: Readonly<Props>) {
       const t = followTimeRef.current;
       const r = 200; // 100 on mobile in legacy; keep 200 by default
       const h = 60; // 40 on mobile in legacy; keep 60 by default
-      const follow = new THREE.Vector3(
-        Math.cos(t) * r,
-        Math.cos(t * 4) * h,
-        Math.sin(t * 2) * r
-      );
+      const follow = new THREE.Vector3(Math.cos(t) * r, Math.cos(t * 4) * h, Math.sin(t * 2) * r);
       // Lerp like legacy (0.2)
       mouse3d.current.lerp(follow, 0.2);
     }
@@ -405,7 +386,8 @@ export default function FboParticles(props: Readonly<Props>) {
     if (motionMatRef.current) {
       const currentTex = simulator.texture;
       motionMatRef.current.uniforms.texturePosition.value = currentTex;
-      motionMatRef.current.uniforms.texturePrevPosition.value = simulator.prevTexture ?? currentTex;
+      motionMatRef.current.uniforms.texturePrevPosition.value =
+        simulator.prevTexture ?? currentTex;
       if (mode === 'triangles') {
         motionMatRef.current.uniforms.flipRatio.value = flipRatio;
       }
