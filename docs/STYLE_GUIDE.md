@@ -1,44 +1,44 @@
-# Style Guide (Adaptado a styled-components)
+# Style Guide (adapted to styled-components)
 
-Basado en tu sistema de diseño (SCSS) y aplicado al stack actual con styled-components. Mantiene la filosofía y el orden, con utilidades equivalentes en TypeScript.
+Based on your design system (SCSS) and applied to the current stack with styled-components. It keeps the philosophy and ordering, with equivalent utilities in TypeScript.
 
-## Principios
+## Principles
 
-- Manténlo simple y reutiliza lo más posible.
-- Código que parezca escrito por una sola persona.
-- Escribe pensando en escalabilidad.
+- Keep it simple and reuse as much as possible.
+- Code that looks like it was written by one person.
+- Write for scalability.
 
-## Estructura y Convenciones
+## Structure and conventions
 
-- Metodología: BEM para nombres de clases cuando uses `className` o estilos globales.
-- Archivos de estilos por componente: `ComponentName.styled.ts` (plural no aplica siempre en componentes, pero si creas agrupaciones: `Buttons.styled.ts`).
-- Clases en singular y minúscula cuando se usen (ej: `.gallery__button`).
-- Nombra imágenes relativo al bloque (ej: `hero_background.png`).
+- Methodology: BEM for class names when you use `className` or global styles.
+- Per-component style files: `ComponentName.styled.ts` (plural not always applicable for components; for groups, e.g., `Buttons.styled.ts`).
+- Classes in singular and lowercase when used (e.g., `.gallery__button`).
+- Name images relative to their block (e.g., `hero_background.png`).
 
-### BEM en styled-components
+### BEM in styled-components
 
-Aunque styled-components genera clases, podemos conservar la semántica BEM en la jerarquía de componentes y en `className` auxiliares:
+Even though styled-components generates classes, we can keep BEM semantics in the component hierarchy and in auxiliary `className`s:
 
 ```tsx
 import styled from 'styled-components';
 
-// Bloque
+// Block
 export const Button = styled.button`
-  /* propiedades */
+  /* properties */
 `;
 
-// Elemento
+// Element
 export const ButtonIcon = styled.span`
-  /* propiedades */
+  /* properties */
 `;
 
-// Modificador (por prop)
+// Modifier (via prop)
 export const ButtonPrimary = styled(Button)`
-  /* propiedades de variante */
+  /* variant properties */
 `;
 ```
 
-Si necesitas clases BEM explícitas (por testing/analytics), usa `src/utils/bem.ts`:
+If you need explicit BEM classes (for testing/analytics), use `src/utils/bem.ts`:
 
 ```ts
 import { bem, be, bemMods, classes } from '@/utils/bem';
@@ -47,35 +47,35 @@ const iconEl = be(block, 'icon'); // 'button__icon'
 const mods = bemMods(block, null, { primary: true, size: 'lg' }); // ['button--primary', 'button--size-lg']
 ```
 
-## Sintaxis
+## Syntax
 
-1. Espacio después del selector y antes de `{}` (styled-components ya fomenta esto).
-2. Indentación con espacios.
-3. Espacio después de `:` en declaraciones.
-4. Bloques CSS separados visualmente (línea en blanco entre grupos lógicos).
-5. Evitar anidación excesiva (máx. 1 nivel).
-6. Mixins para tamaño, estilos de texto y tamaños de fuente numéricos.
+1. Space after the selector and before `{}` (styled-components encourages this).
+2. Spaces for indentation.
+3. Space after `:` in declarations.
+4. Visually separate CSS blocks (blank line between logical groups).
+5. Avoid deep nesting (max one level).
+6. Mixins for size, text styles, and numeric font sizes.
 
-## Orden de propiedades
+## Property order
 
 - Box model: display, width/height, margin/padding, border, box-sizing
 - Positioning: position, top/right/bottom/left, z-index
 - Typography: font, font-weight, font-size, line-height, text-transform, text-decoration, letter-spacing
 - Decoration: color, background, shadows, filters, opacity, transitions
-- Variables: uso de `var(--...)`
-- Mixins: helpers de styled-components
+- Variables: use of `var(--...)`
+- Mixins: styled-components helpers
 
-## Mixins equivalentes (src/ui/styles/scssTokens.ts)
+## Equivalent mixins (src/ui/styles/scssTokens.ts)
 
-Disponibles:
-- `fontSize(px)` → tamaño de fuente y `line-height` relativo.
-- `size(width, height?)` → setea `width` y `height` (si omites height = width).
-- `textStyle({ transform, decoration, weight })` → atajos para tipografía.
-- `fontWeight(key | number)` → mapea `light|normal|medium|bolder|black` o usa un número.
-- `getOpacity(color, amount)` → `color-mix` con transparencia.
-- `getContrastColor(bg, opts?)` y `contrastText(bg)` → color de texto legible según fondo.
+Available:
+- `fontSize(px)` → font size and relative `line-height`.
+- `size(width, height?)` → sets `width` and `height` (omit height to mirror width).
+- `textStyle({ transform, decoration, weight })` → typography shortcuts.
+- `fontWeight(key | number)` → maps `light|normal|medium|bolder|black` or accepts a number.
+- `getOpacity(color, amount)` → `color-mix` with transparency.
+- `getContrastColor(bg, opts?)` and `contrastText(bg)` → readable text color against a background.
 
-Ejemplo:
+Example:
 
 ```tsx
 import styled from 'styled-components';
@@ -101,16 +101,16 @@ export const Button = styled.button`
   ${contrastText(colors.dark)};
   transition: background-color 0.2s ease;
 
-  /* Variables / Mixins adicionales */
+  /* Variables / Additional mixins */
 `;
 ```
 
-## Variables y Temas
+## Variables and themes
 
-- Usa variables CSS definidas en `GlobalStyles` (base.ts) y temas desde `theme.ts`.
-- Preferir `var(--color-...)` para colores y `spacing` del store de tokens.
+- Use CSS variables from `GlobalStyles` (base.ts) and themes from `theme.ts`.
+- Prefer `var(--color-...)` for colors and `spacing` from the token store.
 
-## Ejemplo BEM + styled-components
+## BEM + styled-components example
 
 ```tsx
 import styled from 'styled-components';
@@ -128,11 +128,11 @@ export const CardTitle = styled.h3.attrs({ className: be('card', 'title') })`
 `;
 ```
 
-## Testing y Accesibilidad
+## Testing and accessibility
 
-- Usa `getContrastColor` para asegurar contraste suficiente (WCAG) entre fondo y texto.
-- Mantén tamaños de toque adecuados y jerarquía visual clara.
+- Use `getContrastColor` to ensure sufficient (WCAG) contrast between background and text.
+- Keep adequate touch targets and a clear visual hierarchy.
 
 ---
 
-Esta guía mantiene la intención del sistema original en SCSS pero adaptada al flujo de trabajo con styled-components y tokens TypeScript.
+This guide keeps the intention of the original SCSS system but adapts it to a styled-components and TypeScript tokens workflow.
