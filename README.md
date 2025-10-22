@@ -3,7 +3,7 @@
 
 # Creative Labs: Particles
 
-GPU particle lab with React Three Fiber. This README keeps only the essentials; extended content lives in `[docs/](docs/)`.
+GPU particle lab with React Three Fiber. This README keeps only the essentials; extended content lives in [docs/](docs/).
 
 ## Stack (brief)
 
@@ -31,4 +31,4 @@ Note: Vite warns if the full `process.env` is defined. Avoid exposing the entire
 
 ## Credits
 
-- Legacy reference: `["The-Spirit by edankwan"](https://github.com/edankwan/The-Spirit)`
+- Legacy reference: ["The-Spirit by edankwan"](https://github.com/edankwan/The-Spirit)
