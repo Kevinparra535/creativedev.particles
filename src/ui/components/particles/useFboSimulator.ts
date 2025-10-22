@@ -218,14 +218,22 @@ export function useFboSimulator(
     ping.swap();
   }, []);
 
+  // Expose live getters so consumers always read the up-to-date textures
   return {
-    texture: pingRef.current ? pingRef.current.read().texture : (new THREE.Texture() as any),
-    prevTexture:
-      prevTexRef.current ??
-      (pingRef.current ? pingRef.current.read().texture : (new THREE.Texture() as any)),
-    defaultTexture: defaultRTRef.current
-      ? defaultRTRef.current.texture
-      : (new THREE.Texture() as any),
+    get texture() {
+      return pingRef.current ? pingRef.current.read().texture : (new THREE.Texture() as any);
+    },
+    get prevTexture() {
+      return (
+        prevTexRef.current ||
+        (pingRef.current ? pingRef.current.read().texture : (new THREE.Texture() as any))
+      );
+    },
+    get defaultTexture() {
+      return defaultRTRef.current
+        ? defaultRTRef.current.texture
+        : ((new THREE.Texture() as unknown) as THREE.Texture);
+    },
     resolution,
     step,
     dispose: () => {
@@ -235,7 +243,7 @@ export function useFboSimulator(
       defaultRTRef.current?.dispose();
       pingRef.current?.dispose();
     }
-  };
+  } as unknown as FboSimulator;
 }
 
 export default useFboSimulator;
