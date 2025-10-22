@@ -178,7 +178,7 @@ export function getInitialSettings(url?: string, ua?: string): SettingsConfig {
     simulatorTextureHeight: height,
 
     useTriangleParticles: true,
-    followMouse: false,
+    followMouse: true,
     speed: 1,
     dieSpeed: 0.015,
     radius,
