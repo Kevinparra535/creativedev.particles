@@ -141,6 +141,10 @@ export function setColorState(state: ColorState): void {
 /** Legacy getters */
 export function getRawShaderPrefix(): string {
   // Return the runtime prefix computed from renderer precision (legacy parity)
+  // Fallback defensively to highp if init() hasn't run yet
+  if (!_rawPrefixPublic || _rawPrefixPublic.length === 0) {
+    return 'precision highp float;\n';
+  }
   return _rawPrefixPublic;
 }
 

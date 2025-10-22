@@ -3,6 +3,37 @@ import { useEffect } from 'react';
 import { useSceneSettings, type SceneSettings } from '@/ui/hooks/useSceneSettings';
 import { amountList, motionBlurQualityList, type AmountKey } from '@/config/settings.config';
 
+type SimControls = {
+  amount: AmountKey;
+  speed: number;
+  dieSpeed: number;
+  radius: number;
+  curlSize: number;
+  attraction: number;
+  followMouse: boolean;
+};
+
+type RenControls = {
+  useTriangleParticles: boolean;
+  flipRatio: number;
+  triangleSize: number;
+  shadowDarkness: number;
+  color1: string;
+  color2: string;
+  bgColor: string;
+};
+
+type PostControls = {
+  fxaa: boolean;
+  bloom: boolean;
+  bloomRadius: number;
+  bloomAmount: number;
+  motionBlur: boolean;
+  motionBlurMaxDistance: number;
+  motionBlurMultiplier: number;
+  motionBlurQuality: SceneSettings['motionBlurQuality'];
+};
+
 export default function ControlsPanel() {
   const s = useSceneSettings();
   const {
@@ -30,15 +61,6 @@ export default function ControlsPanel() {
     motionBlurMultiplier
   } = s;
 
-  type SimControls = {
-    amount: AmountKey;
-    speed: number;
-    dieSpeed: number;
-    radius: number;
-    curlSize: number;
-    attraction: number;
-    followMouse: boolean;
-  };
   const sim = useControls(
     'Simulator',
     {
@@ -53,15 +75,6 @@ export default function ControlsPanel() {
     [amount, speed, dieSpeed, radius, curlSize, attraction, followMouse]
   ) as unknown as SimControls;
 
-  type RenControls = {
-    useTriangleParticles: boolean;
-    flipRatio: number;
-    triangleSize: number;
-    shadowDarkness: number;
-    color1: string;
-    color2: string;
-    bgColor: string;
-  };
   const ren = useControls(
     'Rendering',
     {
@@ -81,12 +94,12 @@ export default function ControlsPanel() {
         max: 6,
         visible: useTriangleParticles
       },
-      shadowDarkness: {
-        value: shadowDarkness,
-        min: 0,
-        max: 1,
-        label: 'shadow'
-      },
+      // shadowDarkness: {
+      //   value: shadowDarkness,
+      //   min: 0,
+      //   max: 1,
+      //   label: 'shadow'
+      // },
       color1: { value: color1 },
       color2: { value: color2 },
       bgColor: { value: bgColor, label: 'background' }
@@ -94,16 +107,6 @@ export default function ControlsPanel() {
     [useTriangleParticles, flipRatio, triangleSize, shadowDarkness, color1, color2, bgColor]
   ) as unknown as RenControls;
 
-  type PostControls = {
-    fxaa: boolean;
-    bloom: boolean;
-    bloomRadius: number;
-    bloomAmount: number;
-    motionBlur: boolean;
-    motionBlurMaxDistance: number;
-    motionBlurMultiplier: number;
-    motionBlurQuality: SceneSettings['motionBlurQuality'];
-  };
   const post = useControls(
     'Post',
     {
@@ -113,15 +116,15 @@ export default function ControlsPanel() {
         value: bloomRadius,
         min: 0,
         max: 3,
-        label: 'bloom radius',
-        visible: bloom
+        label: 'bloom smoothing',
+        render: (get) => get('Post.bloom')
       },
       bloomAmount: {
         value: bloomAmount,
         min: 0,
         max: 3,
-        label: 'bloom amount',
-        visible: bloom
+        label: 'bloom threshold',
+        render: (get) => get('Post.bloom')
       },
       motionBlur: { value: motionBlur },
       motionBlurMaxDistance: {
@@ -129,20 +132,20 @@ export default function ControlsPanel() {
         min: 1,
         max: 300,
         label: 'motion distance',
-        visible: motionBlur
+        render: (get) => get('Post.motionBlur')
       },
       motionBlurMultiplier: {
         value: motionBlurMultiplier,
         min: 0.1,
         max: 15,
         label: 'motion multiplier',
-        visible: motionBlur
+        render: (get) => get('Post.motionBlur')
       },
       motionBlurQuality: {
         value: motionBlurQuality,
         options: motionBlurQualityList,
         label: 'motion quality',
-        visible: motionBlur
+        render: (get) => get('Post.motionBlur')
       }
     },
     [

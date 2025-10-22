@@ -73,10 +73,19 @@ export default class Effect {
     // Add raw shader prefix if needed
     if (this.isRawMaterial && this.addRawShaderPrefix) {
       const prefix = fboHelper.getRawShaderPrefix();
-      if (!vertexShader.includes('precision')) {
+
+      // Strip comments and detect actual precision directive, not comment mentions
+      const hasPrecisionDirective = (src: string) => {
+        const withoutComments = src
+          .replace(/\/\*[\s\S]*?\*\//g, '') // block comments
+          .replace(/\/\/.*$/gm, ''); // line comments
+        return /(^|\n)\s*precision\s+(lowp|mediump|highp)\s+float\s*;/m.test(withoutComments);
+      };
+
+      if (!hasPrecisionDirective(vertexShader)) {
         vertexShader = prefix + vertexShader;
       }
-      if (!fragmentShader.includes('precision')) {
+      if (!hasPrecisionDirective(fragmentShader)) {
         fragmentShader = prefix + fragmentShader;
       }
     }

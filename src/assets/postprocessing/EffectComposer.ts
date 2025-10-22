@@ -148,6 +148,15 @@ export function renderScene(
  * @returns fromRenderTarget after swap
  */
 export function render(material: THREE.Material, toScreen?: boolean): THREE.WebGLRenderTarget {
+  // Defensive: avoid feedback loop if source texture equals destination RT texture
+  if (!toScreen) {
+    const mat: any = material as any;
+    const srcTex: THREE.Texture | undefined = mat?.uniforms?.u_texture?.value;
+    if (srcTex && _toRenderTarget && srcTex === _toRenderTarget.texture) {
+      // Swap once so we render into a different texture than the one we're sampling
+      swapRenderTarget();
+    }
+  }
   fboHelper.render(material, toScreen ? undefined : _toRenderTarget);
   swapRenderTarget();
   return _fromRenderTarget;

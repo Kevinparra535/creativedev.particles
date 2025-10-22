@@ -31,8 +31,7 @@
 
 
 // GLSL 3
-
-precision mediump float;
+// precision comes from fboHelper.getRawShaderPrefix (legacy parity)
 
 uniform sampler2D u_texture;
 uniform vec2 u_delta;
