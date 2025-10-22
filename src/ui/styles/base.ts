@@ -35,10 +35,72 @@ export const GlobalStyles = createGlobalStyle`
     --canvas-bg: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
     --particle-glow: #00ffff;
     --particle-trail: rgba(0, 255, 255, 0.3);
+
+    /* =====================================
+       SCSS token variables (paridad con SCSS)
+       ===================================== */
+    /* Spacings */
+    --space: 10px;
+    --space-half: 5px;
+    --space-x2: 20px;
+    --space-x3: 30px;
+    --space-x4: 40px;
+    --space-x5: 50px;
+    --space-x6: 60px;
+    --space-x7: 70px;
+
+    /* Colors */
+    --color-primary: #8C2108;
+    --color-secondary: #D94814;
+    --color-variant: #F26E22;
+    --color-variant-two: #F28D35;
+    --color-variant-three: #f20775;
+    --color-variant-four: #f2cc0c;
+    --color-variant-five: #f22e3e;
+    --color-variant-six: #091b40;
+
+    --color-mood-two-primary: #d90b6b;
+    --color-mood-two-secondary: #732f4f;
+    --color-mood-two-dark: #1e2340;
+    --color-mood-two-light: #bcbfa3;
+
+    --color-mood-three-primary: #48734F;
+    --color-mood-three-secondary: #84F280;
+    --color-mood-three-dark: #262626;
+    --color-mood-three-light: #D0F2D5;
+
+    --color-mood-four-primary: #f2f2f2;
+    --color-mood-four-secondary: #f2f2f2;
+    --color-mood-four-dark: #181818;
+    --color-mood-four-light: #f2f2f2;
+
+    --color-mood-five-primary: #F2C879;
+    --color-mood-five-secondary: #732222;
+    --color-mood-five-dark: #183452;
+    --color-mood-five-light: #BBEDF2;
+
+    --color-negative: #d63f31;
+    --color-warning: #f8a300;
+    --color-info: #4285f4;
+    --color-check: #38cb89;
+
+    --color-bg-light: #f2f2f2;
+    --color-bg-dark: #070505;
+    --color-light: #ffffff;
+    --color-dark: #181818;
+
+    /* Typography tokens */
+    --font-heading: 'Montserrat', system-ui;
+    --font-body: 'Poppins', system-ui;
+    --weight-black: 800;
+    --weight-bolder: 700;
+    --weight-medium: 600;
+    --weight-normal: 500;
+    --weight-light: 400;
   }
 
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-family: var(--font-body, 'Inter'), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     background: var(--primary-bg);
     color: var(--text-primary);
     height: 100%;
@@ -142,13 +204,42 @@ export const cssVariables = {
     md: '1rem',
     lg: '1.5rem',
     xl: '2rem',
-    xxl: '3rem'
+    xxl: '3rem',
+    // SCSS-compatible spacing aliases
+    space: 'var(--space)',
+    space_half: 'var(--space-half)',
+    space_x2: 'var(--space-x2)',
+    space_x3: 'var(--space-x3)',
+    space_x4: 'var(--space-x4)',
+    space_x5: 'var(--space-x5)',
+    space_x6: 'var(--space-x6)',
+    space_x7: 'var(--space-x7)'
   },
   zIndex: {
     canvas: 1,
     ui: 10,
     overlay: 100,
     modal: 1000
+  },
+  // SCSS-compatible color aliases
+  scssColors: {
+    color_primary: 'var(--color-primary)',
+    color_secondary: 'var(--color-secondary)',
+    color_bg_light: 'var(--color-bg-light)',
+    color_bg_dark: 'var(--color-bg-dark)',
+    color_light: 'var(--color-light)',
+    color_dark: 'var(--color-dark)'
+  },
+  fonts: {
+    heading: 'var(--font-heading)',
+    body: 'var(--font-body)'
+  },
+  weights: {
+    light: 'var(--weight-light)',
+    normal: 'var(--weight-normal)',
+    medium: 'var(--weight-medium)',
+    bolder: 'var(--weight-bolder)',
+    black: 'var(--weight-black)'
   }
 };
 

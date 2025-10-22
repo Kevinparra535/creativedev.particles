@@ -4,8 +4,15 @@ import Footer from './components/html/Footer';
 import R3FCanva from './components/scene/R3FCanva';
 import { GlobalStyles, BaseContainer } from './styles/base';
 import { GlobalFonts } from './styles/fonts';
+import { themeUtils } from './styles/theme';
+import { useEffect } from 'react';
 
 const App = () => {
+  useEffect(() => {
+    // Apply light theme by default
+    themeUtils.applyTheme('light');
+  }, []);
+
   return (
     <>
       <GlobalFonts />

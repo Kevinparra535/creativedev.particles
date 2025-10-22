@@ -1,25 +1,29 @@
 import styled from 'styled-components';
-import { cssVariables } from '@/ui/styles/base';
+import { spacing, colors } from './scssTokens';
 
 export const FooterRoot = styled.footer`
-  padding: ${cssVariables.spacing.xl} ${cssVariables.spacing.lg};
+  padding: ${spacing.space} ${spacing.space};
+  position: fixed;
+  bottom: 0;
+  width: 100%;
   color: var(--text-primary);
   text-align: center;
   font-family: var(--font-body);
   background-color: transparent;
-
-  h2 {
-    font-size: 32px;
-    margin-bottom: ${cssVariables.spacing.sm};
-    font-family: var(--font-heading);
-  }
 `;
 
 export const FooterContainer = styled.div`
   display: flex;
-  margin: 0 auto;
-  max-width: 1200px;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  flex-direction: row;
+
+  p {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin: 0;
+    color: ${colors.light};
+  }
 `;

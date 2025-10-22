@@ -5,6 +5,18 @@ import { css } from 'styled-components';
 // =====================================
 
 export const themes = {
+  light: {
+    '--primary-bg': 'var(--color-bg-light)',
+    '--secondary-bg': '#ffffff',
+    '--accent-color': 'var(--color-info)',
+    '--canvas-bg': 'linear-gradient(180deg, #ffffff 0%, #f5f6f8 100%)',
+    '--particle-glow': 'rgba(66, 133, 244, 1.0)',
+    '--particle-trail': 'rgba(66, 133, 244, 0.25)',
+
+    // Text colors for light mode
+    '--text-primary': 'var(--color-dark)',
+    '--text-secondary': '#4b5563'
+  },
   space: {
     '--primary-bg': '#000012',
     '--secondary-bg': '#1a1a2e',

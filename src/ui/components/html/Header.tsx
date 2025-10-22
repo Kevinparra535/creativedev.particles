@@ -13,10 +13,10 @@ const Header = () => {
       <HeaderContainer>
         <HeaderTitle>
           <img src={Logo} alt='Logo' />
-          <h1>Creative Developer</h1>
+          <h1>Creative Labs</h1>
         </HeaderTitle>
         <HeaderInfo>
-          <span>Porfolio of</span>
+          <span>Part of</span>
           <span>Kevin Parra | @kevcoder</span>
         </HeaderInfo>
       </HeaderContainer>
