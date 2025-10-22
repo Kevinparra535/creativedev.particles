@@ -12,6 +12,48 @@ This project showcases **advanced Creative Technology Leadership** through a sop
 - **Performance-First Engineering** - Optimized for 60fps+ real-time rendering
 - **Scalable Component Design** - Enterprise-ready modular structure
 
+---
+
+## 🔎 Project-specific architecture: creativedev.particles (Oct 2025)
+
+This repository is a modernized GPU particles lab with an explicit goal of reaching visual parity with a legacy reference while adopting a maintainable, scalable stack.
+
+### Scene wiring
+
+- Entry: `src/ui/components/R3FCanva.tsx` creates the `<Canvas>`, sets fog/clear color, and mounts `ModernCore`.
+- Scene: `src/ui/scenes/ModernCore.tsx` composes lights, floor, `ControlsPanel` (Leva), and `AdaptiveParticles`.
+- PostFX: `PostProcessingFx` mounts the legacy‑compatible postprocessing pipeline (FXAA, Bloom, Motion Blur) under `src/assets/postprocessing/**`.
+
+### GPU FBO pipeline
+
+- Component: `src/ui/components/particles/FboParticles.tsx`.
+- Simulation: offscreen ping‑pong FBO with `OrthographicCamera(-1..1)` and a fullscreen quad. Shaders live in `src/glsl/glsl3/simulationShaders.ts`.
+- Initialization: GLSL3 seeding of a Fibonacci sphere + life into a default texture.
+- Uniforms (sim): `resolution`, `texturePosition`, `textureDefaultPosition`, `time`, `speed`, `dieSpeed`, `radius`, `curlSize`, `attraction`, `initAnimation`, `mouse3d`, `followMouse`.
+- Draw: points or triangles. Point path samples the sim texture in the vertex shader; triangle path morphs orientations via `flipRatio` with attributes `position`, `positionFlip`, and `fboUV`.
+- Motion blur: particles attach a `motionMaterial` exposing `texturePosition`, `texturePrevPosition`, and `u_prevModelViewMatrix` for the Motion Blur effect’s velocity pass.
+
+### CPU fallback
+
+- Component: `src/ui/components/particles/CpuParticles.tsx`.
+- Behavior: generates sphere positions once and attracts them to a z=0 projected mouse point.
+- Selection: `AdaptiveParticles` chooses CPU when WebGL2 is missing/risky (see `utils/capabilities.ts`).
+
+### Post‑processing (legacy parity)
+
+- Composer/effects under `src/assets/postprocessing/**`.
+- FXAA: GLSL3 self‑contained shader (no glslify) to avoid pragma/precision compile issues.
+- Bloom: legacy‑accurate 2‑pass separable blur with threshold/smoothing/weights parity.
+- Motion Blur: velocity pass (reading per‑object motion material), then lines/sampling pass with quality scaling.
+- Safety: the composer avoids feedback loops when a pass samples from the target it renders to.
+
+### Settings and controls
+
+- Zustand store mirrors legacy toggles: amount (cols/rows/radius), speed, dieSpeed, curlSize, attraction, followMouse, triangle size/flip, and post‑fx toggles/quality.
+- Leva UI updates values live; amount changes trigger a page reload to resize buffers safely.
+
+---
+
 ## 🔬 Technical Leadership Approach
 
 ### **Strategic Technology Decisions**

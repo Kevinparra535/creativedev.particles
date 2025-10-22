@@ -7,6 +7,38 @@
 
 As a **Creative Tech Lead**, I believe in creating digital experiences that transcend traditional boundaries between technology and creativity. This project embodies my approach to leading teams and projects in the creative technology space.
 
+---
+
+## 🚩 Visión inicial y laboratorio (este proyecto)
+
+Este repositorio nace como un laboratorio para responder una pregunta simple y exigente: ¿podemos alcanzar/par la calidad de un sistema de partículas legado con una base moderna —React 19, Vite, R3F y GLSL3— manteniendo rendimiento, claridad y capacidad de evolución?
+
+- Naturaleza de lab: comparar “manzana con manzana” un stack legacy (The-Spirit-master) y uno moderno, con foco en paridad visual y técnica (FXAA, Bloom, Motion Blur, trails de partículas), estabilidad y DX.
+- Hipótesis: un solo sistema de post‑processing (el más completo) reduce complejidad, facilita paridad y minimiza fallos.
+- Criterio de éxito: 60fps sostenidos, ausencia de errores de shader/feedback loop, controles claros, y código documentado y desmontable.
+
+## 🧭 Decisiones aplicadas en el lab (liderazgo en acción)
+
+- Seleccionar un solo pipeline de post‑processing (legacy) por completitud funcional; retirar rutas paralelas para evitar deuda técnica.
+- Garantizar paridad exacta de Bloom (kernel/threshold/smoothing), estabilidad de FXAA (GLSL3 autocontenido) y corrección de Motion Blur (mapa de velocidad, `u_prevModelViewMatrix`, texturas prev/curr vivas).
+- Inyectar precisión de shaders vía helper central para cortar errores de compilación y facilitar mantenibilidad.
+- Blindaje contra feedback loops en el composer: defensas cuando una pasada lee la misma textura destino.
+- Telemetría manual y validaciones sencillas (build/lint, toggles en caliente) antes de optimizaciones más profundas.
+
+## ✅ Resultados
+
+- Build estable; paridad visual alcanzada para los efectos clave bajo el pipeline legacy.
+- Simulador FBO consistente con fallback CPU; controles y store unificados.
+- Base documental y de arquitectura alineada al código real (README y ARCHITECTURE actualizados).
+
+## 🔜 Siguientes pasos
+
+- Migrar lint a flat config 100% (mapear plugins y reglas), manteniendo baja fricción.
+- Reducir exposición de env en Vite (`define`) a claves mínimas.
+- Explorar WebGPU como vía evolutiva, partiendo de los mismos contratos (texturas de sim y materiales de movimiento).
+
+---
+
 ## 🚀 Core Principles
 
 ### **1. Technology Serves Creativity**
