@@ -53,7 +53,7 @@ export const HeaderInfo = styled.div`
   flex-direction: column;
   margin-left: ${cssVariables.spacing.xl};
 
-  span {
+  span, a {
     font-size: 14px;
     color: var(--text-secondary);
     font-family: inherit;

@@ -4,7 +4,6 @@ import {
   HeaderContainer,
   HeaderTitle,
   HeaderInfo,
-  HeaderActions
 } from '../../styles/Header.styled';
 import { getContrastColor } from '@/utils/color';
 import useSceneSettings from '@/ui/hooks/useSceneSettings';
@@ -22,15 +21,16 @@ const Header = () => {
         </HeaderTitle>
         <HeaderInfo>
           <span style={{ color: textColor }}>Part of</span>
-          <span style={{ color: textColor }}>Kevin Parra | @kevcoder</span>
+          <a
+            style={{ color: textColor }}
+            href='https://links.kevcoder.co/'
+            target='_blank'
+            rel='noopener'
+          >Kevin Parra | @kevcoder</a>
         </HeaderInfo>
       </HeaderContainer>
 
-      <HeaderActions>
-        <a href='https://links.kevcoder.co/' target='_blank' rel='noopener'>
-          Contact
-        </a>
-      </HeaderActions>
+
     </HeaderRoot>
   );
 };
