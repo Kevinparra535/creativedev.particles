@@ -29,7 +29,6 @@ export default class BloomEffect extends Effect {
       },
       fragmentShader: this.getBloomShader(),
       isRawMaterial: true,
-      addRawShaderPrefix: true // Use legacy GLSL1 prefix
     });
 
     // Initialize blur material exactly like legacy
