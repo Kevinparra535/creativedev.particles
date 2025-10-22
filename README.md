@@ -1,4 +1,7 @@
-# creativedev.particles
+!["Particles cover"](docs/readme_cover.png)
+
+
+# Creative Labs: Particles
 
 A GPU particle systems lab exploring high‑performance rendering with Three.js + React Three Fiber, designed as the practical kickoff of my journey as a Creative Tech Lead. It documents the technology choices, experiments, and leadership decisions behind building a modern, scalable visual system.
 
