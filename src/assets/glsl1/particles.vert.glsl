@@ -42,5 +42,4 @@ void main() {
     gl_PointSize = 1300.0 / length(mvPosition.xyz) * smoothstep(0.0, 0.2, positionInfo.w);
     gl_Position = projectionMatrix * mvPosition;
 
-    #include <shadowmap_vertex>
 }

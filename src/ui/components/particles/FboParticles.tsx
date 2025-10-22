@@ -160,12 +160,25 @@ export default function FboParticles(props: Readonly<Props>) {
       matRef.current = new THREE.ShaderMaterial({
         vertexShader: particlesVertexShader,
         fragmentShader: particlesFragmentShader,
-        uniforms: {
-          texturePosition: { value: null },
-          color1: { value: new THREE.Color(color1) },
-          color2: { value: new THREE.Color(color2) },
-          flipRatio: { value: 0 }
-        },
+        uniforms: THREE.UniformsUtils.merge([
+          THREE.UniformsLib['common'],
+          THREE.UniformsLib['aomap'],
+          THREE.UniformsLib['lightmap'],
+          THREE.UniformsLib['emissivemap'],
+          THREE.UniformsLib['bumpmap'],
+          THREE.UniformsLib['normalmap'],
+          THREE.UniformsLib['displacementmap'],
+          THREE.UniformsLib['gradientmap'],
+          THREE.UniformsLib['fog'],
+          THREE.UniformsLib['lights'],
+          {
+            texturePosition: { value: null },
+            color1: { value: new THREE.Color(color1) },
+            color2: { value: new THREE.Color(color2) },
+            flipRatio: { value: 0 }
+          }
+        ]),
+        lights: true,
         transparent: false,
         depthWrite: false,
         depthTest: true,
@@ -202,12 +215,25 @@ export default function FboParticles(props: Readonly<Props>) {
       matRef.current = new THREE.ShaderMaterial({
         vertexShader: trianglesVertexShader,
         fragmentShader: particlesFragmentShader,
-        uniforms: {
-          texturePosition: { value: null },
-          color1: { value: new THREE.Color(color1) },
-          color2: { value: new THREE.Color(color2) },
-          flipRatio: { value: flipRatio }
-        },
+        uniforms: THREE.UniformsUtils.merge([
+          THREE.UniformsLib['common'],
+          THREE.UniformsLib['aomap'],
+          THREE.UniformsLib['lightmap'],
+          THREE.UniformsLib['emissivemap'],
+          THREE.UniformsLib['bumpmap'],
+          THREE.UniformsLib['normalmap'],
+          THREE.UniformsLib['displacementmap'],
+          THREE.UniformsLib['gradientmap'],
+          THREE.UniformsLib['fog'],
+          THREE.UniformsLib['lights'],
+          {
+            texturePosition: { value: null },
+            color1: { value: new THREE.Color(color1) },
+            color2: { value: new THREE.Color(color2) },
+            flipRatio: { value: flipRatio }
+          }
+        ]),
+        lights: true,
         transparent: false,
         depthWrite: true,
         depthTest: true,
