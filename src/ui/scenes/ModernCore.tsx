@@ -30,7 +30,7 @@ const ModernCore = () => {
         mode={mode}
         cols={s.cols}
         rows={s.rows}
-        radius={s.radius * 300}
+        radius={s.radius * 150}
         speed={s.speed}
         dieSpeed={s.dieSpeed}
         curlSize={s.curlSize}
