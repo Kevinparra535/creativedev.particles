@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import Lights from '../components/scene/Lights';
 import Floor from '../components/scene/Floor';
 import ControlsPanel from '../components/controls/ControlsPanel';
+import PostProcessingFx from '@/ui/components/fx/PostProcessingFx';
 
 const ModernCore = () => {
   const s = useSceneSettings();
@@ -41,6 +42,8 @@ const ModernCore = () => {
         color1={s.color1}
         color2={s.color2}
       />
+
+      <PostProcessingFx />
       <OrbitControls
         enableDamping={true}
         dampingFactor={0.1}

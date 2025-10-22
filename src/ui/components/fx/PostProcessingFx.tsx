@@ -12,7 +12,7 @@ import * as fboHelper from '@/utils/fboHelper';
  * Legacy PostProcessing integration for React Three Fiber
  * Uses the exact legacy postprocessing.js system
  */
-const LegacyPostProcessing = () => {
+const PostProcessingFx = () => {
   const { gl, scene, camera, size } = useThree();
   const s = useSceneSettings();
   const postProcessingRef = useRef<typeof PostProcessing | null>(null);
@@ -101,4 +101,4 @@ const LegacyPostProcessing = () => {
   return null; // This component doesn't render anything itself
 };
 
-export default LegacyPostProcessing;
+export default PostProcessingFx;
