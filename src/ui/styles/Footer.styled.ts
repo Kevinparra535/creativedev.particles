@@ -1,8 +1,14 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { spacing, colors } from './scssTokens';
+import { cssVariables } from './base';
+
+const slideUp = keyframes`
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0px); opacity: 1; }
+  `;
 
 export const FooterRoot = styled.footer`
-  padding: ${spacing.space} ${spacing.space};
+  padding: ${spacing.space_x2} ${cssVariables.spacing.xl};
   position: fixed;
   bottom: 0;
   width: 100%;
@@ -10,6 +16,8 @@ export const FooterRoot = styled.footer`
   text-align: center;
   font-family: var(--font-body);
   background-color: transparent;
+  transition: all 0.3s ease-in-out;
+  animation: ${slideUp} 1s ease-in-out 0.2s both;
 `;
 
 export const FooterContainer = styled.div`
