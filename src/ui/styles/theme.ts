@@ -1,4 +1,4 @@
-import { css } from "styled-components";
+import { css } from 'styled-components';
 
 // =====================================
 // Theme System para Experiencias 3D
@@ -6,44 +6,40 @@ import { css } from "styled-components";
 
 export const themes = {
   space: {
-    "--primary-bg": "#000012",
-    "--secondary-bg": "#1a1a2e",
-    "--accent-color": "#6366f1",
-    "--canvas-bg":
-      "radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%)",
-    "--particle-glow": "#00ffff",
-    "--particle-trail": "rgba(0, 255, 255, 0.3)",
+    '--primary-bg': '#000012',
+    '--secondary-bg': '#1a1a2e',
+    '--accent-color': '#6366f1',
+    '--canvas-bg': 'radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%)',
+    '--particle-glow': '#00ffff',
+    '--particle-trail': 'rgba(0, 255, 255, 0.3)'
   },
 
   neon: {
-    "--primary-bg": "#0d0d0d",
-    "--secondary-bg": "#1a0d1a",
-    "--accent-color": "#ff0080",
-    "--canvas-bg":
-      "radial-gradient(circle at center, #2d1b35 0%, #0d0d0d 100%)",
-    "--particle-glow": "#ff0080",
-    "--particle-trail": "rgba(255, 0, 128, 0.4)",
+    '--primary-bg': '#0d0d0d',
+    '--secondary-bg': '#1a0d1a',
+    '--accent-color': '#ff0080',
+    '--canvas-bg': 'radial-gradient(circle at center, #2d1b35 0%, #0d0d0d 100%)',
+    '--particle-glow': '#ff0080',
+    '--particle-trail': 'rgba(255, 0, 128, 0.4)'
   },
 
   ocean: {
-    "--primary-bg": "#001122",
-    "--secondary-bg": "#003344",
-    "--accent-color": "#00aacc",
-    "--canvas-bg":
-      "radial-gradient(ellipse at bottom, #003366 0%, #001122 100%)",
-    "--particle-glow": "#00ffaa",
-    "--particle-trail": "rgba(0, 255, 170, 0.3)",
+    '--primary-bg': '#001122',
+    '--secondary-bg': '#003344',
+    '--accent-color': '#00aacc',
+    '--canvas-bg': 'radial-gradient(ellipse at bottom, #003366 0%, #001122 100%)',
+    '--particle-glow': '#00ffaa',
+    '--particle-trail': 'rgba(0, 255, 170, 0.3)'
   },
 
   forest: {
-    "--primary-bg": "#0f1419",
-    "--secondary-bg": "#1a2f1a",
-    "--accent-color": "#4ade80",
-    "--canvas-bg":
-      "radial-gradient(ellipse at bottom, #1a3d1a 0%, #0f1419 100%)",
-    "--particle-glow": "#4ade80",
-    "--particle-trail": "rgba(74, 222, 128, 0.3)",
-  },
+    '--primary-bg': '#0f1419',
+    '--secondary-bg': '#1a2f1a',
+    '--accent-color': '#4ade80',
+    '--canvas-bg': 'radial-gradient(ellipse at bottom, #1a3d1a 0%, #0f1419 100%)',
+    '--particle-glow': '#4ade80',
+    '--particle-trail': 'rgba(74, 222, 128, 0.3)'
+  }
 };
 
 // =====================================
@@ -75,15 +71,12 @@ const preventUserInteraction = css`
 `;
 
 // Animaciones smooth para transiciones
-const smoothTransition = (
-  property: string = "all",
-  duration: string = "0.3s"
-) => css`
+const smoothTransition = (property: string = 'all', duration: string = '0.3s') => css`
   transition: ${property} ${duration} cubic-bezier(0.4, 0, 0.2, 1);
 `;
 
 // Efectos de glow para elementos UI
-const glowEffect = (color: string = "var(--accent-color)") => css`
+const glowEffect = (color: string = 'var(--accent-color)') => css`
   box-shadow:
     0 0 20px ${color}40,
     0 0 40px ${color}20,
@@ -93,7 +86,7 @@ const glowEffect = (color: string = "var(--accent-color)") => css`
 // Tipografía para UI en experiencias 3D
 const uiText = css`
   font-family:
-    "Inter",
+    'Inter',
     -apple-system,
     BlinkMacSystemFont,
     sans-serif;
@@ -112,27 +105,22 @@ export const mixins = {
 
   // Overlay para controles
   overlayPosition: (
-    position:
-      | "top-left"
-      | "top-right"
-      | "bottom-left"
-      | "bottom-right"
-      | "center"
+    position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center'
   ) => {
     const positions = {
-      "top-left": css`
+      'top-left': css`
         top: 1rem;
         left: 1rem;
       `,
-      "top-right": css`
+      'top-right': css`
         top: 1rem;
         right: 1rem;
       `,
-      "bottom-left": css`
+      'bottom-left': css`
         bottom: 1rem;
         left: 1rem;
       `,
-      "bottom-right": css`
+      'bottom-right': css`
         bottom: 1rem;
         right: 1rem;
       `,
@@ -140,7 +128,7 @@ export const mixins = {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-      `,
+      `
     };
 
     return css`
@@ -155,7 +143,7 @@ export const mixins = {
     ${glassmorphism}
     ${smoothTransition()}
     ${uiText}
-    
+
     padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 8px;
@@ -177,7 +165,7 @@ export const mixins = {
       opacity: 0.5;
       cursor: not-allowed;
     }
-  `,
+  `
 };
 
 // =====================================
@@ -185,11 +173,11 @@ export const mixins = {
 // =====================================
 
 export const breakpoints = {
-  mobile: "480px",
-  tablet: "768px",
-  desktop: "1024px",
-  large: "1440px",
-  ultrawide: "1920px",
+  mobile: '480px',
+  tablet: '768px',
+  desktop: '1024px',
+  large: '1440px',
+  ultrawide: '1920px'
 };
 
 export const mediaQueries = {
@@ -200,10 +188,10 @@ export const mediaQueries = {
   ultrawide: `@media (min-width: ${breakpoints.ultrawide})`,
 
   // Queries específicas para experiencias 3D
-  highRefreshRate: "@media (min-refresh-rate: 120Hz)",
-  preferReducedMotion: "@media (prefers-reduced-motion: reduce)",
-  touchDevice: "@media (pointer: coarse)",
-  highResolution: "@media (-webkit-min-device-pixel-ratio: 2)",
+  highRefreshRate: '@media (min-refresh-rate: 120Hz)',
+  preferReducedMotion: '@media (prefers-reduced-motion: reduce)',
+  touchDevice: '@media (pointer: coarse)',
+  highResolution: '@media (-webkit-min-device-pixel-ratio: 2)'
 };
 
 // =====================================
@@ -225,11 +213,10 @@ export const themeUtils = {
   getDeviceCapabilities: () => ({
     isHighRefreshRate:
       window.screen && (window.screen as unknown as { refreshRate?: number }).refreshRate! >= 120,
-    supportsWebGL2: !!document.createElement("canvas").getContext("webgl2"),
-    isTouchDevice: "ontouchstart" in globalThis,
-    prefersReducedMotion: globalThis.matchMedia("(prefers-reduced-motion: reduce)")
-      .matches,
-    devicePixelRatio: globalThis.devicePixelRatio || 1,
+    supportsWebGL2: !!document.createElement('canvas').getContext('webgl2'),
+    isTouchDevice: 'ontouchstart' in globalThis,
+    prefersReducedMotion: globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    devicePixelRatio: globalThis.devicePixelRatio || 1
   }),
 
   // Optimizar performance basado en dispositivo
@@ -238,11 +225,11 @@ export const themeUtils = {
 
     return {
       particleCount: capabilities.isHighRefreshRate ? 5000 : 3000,
-      shadowQuality: capabilities.supportsWebGL2 ? "high" : "medium",
+      shadowQuality: capabilities.supportsWebGL2 ? 'high' : 'medium',
       postProcessing: !capabilities.isTouchDevice,
-      antialias: capabilities.devicePixelRatio < 2,
+      antialias: capabilities.devicePixelRatio < 2
     };
-  },
+  }
 };
 
 export default mixins;

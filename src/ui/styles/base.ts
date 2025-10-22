@@ -12,25 +12,25 @@ export const GlobalStyles = createGlobalStyle`
     padding: 0;
   }
 
-  html {s
+  html {
     /* Base para experiencias 3D inmersivas */
     height: 100%;
     font-size: 16px;
     line-height: 1.4;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    
+
     /* Optimizaciones para 3D */
     transform-style: preserve-3d;
     perspective: 1000px;
-    
+
     /* Variables CSS para theming */
     --primary-bg: #000012;
     --secondary-bg: #1a1a2e;
     --accent-color: #6366f1;
     --text-primary: #ffffff;
     --text-secondary: #a1a1aa;
-    
+
     /* Variables para 3D */
     --canvas-bg: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
     --particle-glow: #00ffff;
@@ -43,13 +43,13 @@ export const GlobalStyles = createGlobalStyle`
     color: var(--text-primary);
     height: 100%;
     overflow: hidden; /* Previene scroll en experiencias 3D */
-    
+
     /* Prevenir selección de texto en experiencias 3D */
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    
+
     /* Mejoras de performance para 3D */
     will-change: transform;
     backface-visibility: hidden;
@@ -62,11 +62,11 @@ export const GlobalStyles = createGlobalStyle`
     position: relative;
     overflow: hidden;
     background: var(--canvas-bg);
-    
+
     /* Layout para experiencias 3D */
     display: flex;
     flex-direction: column;
-    
+
     /* GPU acceleration */
     transform: translateZ(0);
     -webkit-transform: translateZ(0);

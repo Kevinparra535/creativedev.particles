@@ -6,6 +6,7 @@ import Lights from '../components/scene/Lights';
 import Floor from '../components/scene/Floor';
 import ControlsPanel from '../components/controls/ControlsPanel';
 import PostProcessingFx from '@/ui/components/fx/PostProcessingFx';
+import { CameraShake } from '@react-three/drei';
 
 const ModernCore = () => {
   const s = useSceneSettings();
@@ -27,6 +28,7 @@ const ModernCore = () => {
       <Lights />
       <Floor />
       <ControlsPanel />
+
       <AdaptiveParticles
         mode={mode}
         cols={s.cols}
@@ -43,7 +45,18 @@ const ModernCore = () => {
         color2={s.color2}
       />
 
+      <CameraShake
+        yawFrequency={1}
+        maxYaw={0.05}
+        pitchFrequency={1}
+        maxPitch={0.05}
+        rollFrequency={0.5}
+        maxRoll={0.5}
+        intensity={0.2}
+      />
+
       <PostProcessingFx />
+
       <OrbitControls
         enableDamping={true}
         dampingFactor={0.1}
