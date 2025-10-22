@@ -44,6 +44,7 @@ export const HeaderTitle = styled.div`
   h1 {
     font-size: 40px;
     line-height: 1.1;
+    transition: all 0.3s ease-in-out;
   }
 `;
 
@@ -58,12 +59,14 @@ export const HeaderInfo = styled.div`
     font-family: inherit;
     font-weight: 300;
     line-height: 1.4;
+    transition: all 0.3s ease-in-out;
   }
 
   span:last-child {
     font-weight: 500;
     margin-top: 4px;
     color: var(--text-primary);
+    transition: all 0.3s ease-in-out;
   }
 `;
 
@@ -72,6 +75,7 @@ export const HeaderActions = styled.div`
     text-decoration: none;
     font-weight: 500;
     color: var(--text-primary);
+    transition: all 0.3s ease-in-out;
   }
 `;
 

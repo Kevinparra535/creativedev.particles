@@ -4,20 +4,25 @@ import {
   HeaderContainer,
   HeaderTitle,
   HeaderInfo,
-  HeaderActions,
+  HeaderActions
 } from '../../styles/Header.styled';
+import { getContrastColor } from '@/utils/color';
+import useSceneSettings from '@/ui/hooks/useSceneSettings';
 
 const Header = () => {
+  const s = useSceneSettings();
+  const textColor = getContrastColor(s.bgColor);
+
   return (
     <HeaderRoot>
       <HeaderContainer>
         <HeaderTitle>
           <img src={Logo} alt='Logo' />
-          <h1>Creative Labs</h1>
+          <h1 style={{ color: textColor }}>Creative Labs</h1>
         </HeaderTitle>
         <HeaderInfo>
-          <span>Part of</span>
-          <span>Kevin Parra | @kevcoder</span>
+          <span style={{ color: textColor }}>Part of</span>
+          <span style={{ color: textColor }}>Kevin Parra | @kevcoder</span>
         </HeaderInfo>
       </HeaderContainer>
 
