@@ -6,6 +6,7 @@ import DefaultSettings from '@/config/settings.config';
 import { useSceneSettings } from '@/ui/hooks/useSceneSettings';
 
 import LegacyCore from '@/ui/scenes/LegacyCore';
+import ModernCore from '@/ui/scenes/ModernCore';
 
 const R3FCanva = () => {
   const camBase = new THREE.Vector3(300, 60, 300).normalize().multiplyScalar(1000);
@@ -27,10 +28,10 @@ const R3FCanva = () => {
         gl={{ antialias: true, powerPreference: 'high-performance' }}
       >
         <color attach='background' args={[s.bgColor || DefaultSettings.bgColor]} />
-        <fogExp2 attach='fog' args={[s.bgColor || DefaultSettings.bgColor, 0.001]} />
+        {/* <fogExp2 attach='fog' args={[s.bgColor || DefaultSettings.bgColor, 0.001]} /> */}
 
-        {/* <ModernCore /> */}
-        <LegacyCore />
+        <ModernCore />
+        {/* <LegacyCore /> */}
 
         <PerspectiveCamera
           makeDefault

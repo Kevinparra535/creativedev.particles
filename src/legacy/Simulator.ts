@@ -57,6 +57,7 @@ export class Simulator {
         texturePosition: { value: null as unknown as THREE.Texture },
         textureDefaultPosition: { value: null as unknown as THREE.Texture },
         mouse3d: { value: new THREE.Vector3() },
+        followMouse: { value: DefaultSettings.followMouse ? 1 : 0 },
         speed: { value: DefaultSettings.speed },
         dieSpeed: { value: DefaultSettings.dieSpeed },
         radius: { value: DefaultSettings.radius },
@@ -193,6 +194,9 @@ export class Simulator {
     u.attraction.value = DefaultSettings.attraction;
     u.initAnimation.value = this.initAnimation;
     (u.time.value as number) = (u.time.value as number) + dt * 0.001;
+
+    // Update follow toggle uniform explicitly (GLSL3 sim expects a float 0/1)
+    (u.followMouse.value as number) = DefaultSettings.followMouse ? 1 : 0;
 
     if (DefaultSettings.followMouse) {
       (u.mouse3d.value as THREE.Vector3).copy(mouse3d);

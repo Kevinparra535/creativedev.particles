@@ -39,9 +39,8 @@
 
 
 // GLSL 3
-
-out vec4 fragColor;
 precision mediump float;
+out vec4 fragColor;
 uniform vec2 resolution;
 uniform sampler2D texturePosition;
 uniform sampler2D textureDefaultPosition;
