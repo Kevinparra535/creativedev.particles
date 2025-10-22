@@ -1,7 +1,7 @@
 !["Particles cover"](docs/readme_cover.png)
 
 
-# Creative Labs: Particles
+# Creative Labs: Particles [Live demo](https://labs-particles.web.app/)
 
 GPU particle lab with React Three Fiber. This README keeps only the essentials; extended content lives in [docs/](docs/README.md).
 
