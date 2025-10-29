@@ -1,5 +1,10 @@
 !["Particles cover"](docs/readme_cover.png)
 
+![R3F](https://img.shields.io/badge/R3F-React%20Three%20Fiber-black)
+![WebGL2](https://img.shields.io/badge/WebGL2-FBO-blue)
+![GLSL3](https://img.shields.io/badge/GLSL-3.0-purple)
+![License: MIT](https://img.shields.io/badge/License-MIT-green)
+Tested @ 1080p · 60FPS (65k)
 
 # Creative Labs: Particles [Live demo](https://labs-particles.web.app/)
 
